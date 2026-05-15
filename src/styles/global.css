@@ -1,0 +1,57 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+  --c-white:  rgba(255, 255, 255, 1);
+  --c-w85:    rgba(255, 255, 255, 0.85);
+  --c-w45:    rgba(255, 255, 255, 0.45);
+  --c-w22:    rgba(255, 255, 255, 0.22);
+  --c-w10:    rgba(255, 255, 255, 0.10);
+  --c-blue:   rgba(48, 148, 255, 0.72);
+  --c-blue2:  rgba(48, 148, 255, 0.35);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #020408;
+  color: var(--c-w85);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  cursor: none;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  cursor: none;
+}
+
+::selection {
+  background: rgba(40, 120, 220, 0.22);
+}
+
+/* ── Custom cursor ── */
+#cursor {
+  position: fixed;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-blue);
+  box-shadow: 0 0 10px rgba(48, 148, 255, 0.5);
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  left: -20px;
+  top: -20px;
+}
+
+/* ── Utility ── */
+.mono { font-family: var(--font); font-variant-numeric: tabular-nums; }
