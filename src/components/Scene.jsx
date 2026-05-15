@@ -209,6 +209,7 @@ export default function Scene() {
   const holdStartRef    = useRef(0);
   const shakeAmtRef     = useRef(0);
   const forceGestureRef = useRef({ gesture: null, until: 0 });
+  const wasBurstRef     = useRef(false);
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -280,15 +281,17 @@ export default function Scene() {
       };
     };
 
-    // Click: toggle openness between closed / open
+    // Click: toggle openness — skip if this mouseup was a burst release
     const handleClick = () => {
+      if (wasBurstRef.current) { wasBurstRef.current = false; return; }
       if (!storeRef.current.cameraAllowed) {
         scrollOpenRef.current = scrollOpenRef.current > 0.5 ? 0.08 : 0.92;
       }
     };
 
-    // Scroll: continuously control openness
+    // Scroll: only control openness when scene is active (avoid blocking overlay scroll)
     const handleWheel = (e) => {
+      if (storeRef.current.phase !== 'active') return;
       e.preventDefault();
       if (!storeRef.current.cameraAllowed) {
         scrollOpenRef.current = Math.max(0, Math.min(1,
@@ -322,15 +325,18 @@ export default function Scene() {
 
     // Release burst after hold ≥ 0.5s
     const handleMouseUp = (e) => {
-      if (e.button === 0 && isHoldingRef.current && !storeRef.current.cameraAllowed) {
-        const held = (performance.now() - holdStartRef.current) / 1000;
-        if (held >= 0.5) {
-          shakeAmtRef.current = Math.min(held * 0.7, 1.4);
-          forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 900 };
-        }
-        isHoldingRef.current = false;
+      if (e.button !== 0 || !isHoldingRef.current || storeRef.current.cameraAllowed) return;
+      const held = (performance.now() - holdStartRef.current) / 1000;
+      if (held >= 0.5) {
+        shakeAmtRef.current = Math.min(held * 0.7, 1.4);
+        forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 900 };
+        wasBurstRef.current = true; // suppress the following click event
       }
+      isHoldingRef.current = false;
     };
+
+    // Reset hold state if focus is lost (e.g. mouse released outside window)
+    const resetHold = () => { isHoldingRef.current = false; };
 
     // Keyboard gesture simulation + Space burst
     const handleKeyDown = (e) => {
@@ -360,6 +366,8 @@ export default function Scene() {
     window.addEventListener('mousedown',   handleMouseDown);
     window.addEventListener('mouseup',     handleMouseUp);
     window.addEventListener('keydown',     handleKeyDown);
+    window.addEventListener('blur',        resetHold);
+    window.addEventListener('pointercancel', resetHold);
 
     // ── Animation loop ───────────────────────────────────────────────
 
@@ -561,6 +569,8 @@ export default function Scene() {
       window.removeEventListener('mousedown',   handleMouseDown);
       window.removeEventListener('mouseup',     handleMouseUp);
       window.removeEventListener('keydown',     handleKeyDown);
+      window.removeEventListener('blur',        resetHold);
+      window.removeEventListener('pointercancel', resetHold);
 
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose();
