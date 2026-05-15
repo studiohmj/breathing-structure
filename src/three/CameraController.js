@@ -26,7 +26,6 @@ export class CameraController {
     this._pointY = 0;
     // SWIPE impulse
     this._swipeX = 0;
-    this._swipeY = 0;
   }
 
   update(state, dt) {

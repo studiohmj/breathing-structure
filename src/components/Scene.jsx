@@ -309,6 +309,7 @@ export default function Scene() {
 
     // Click: toggle openness — skip if this mouseup was a burst release
     const handleClick = () => {
+      if (storeRef.current.phase !== 'active') return;
       if (wasBurstRef.current) { wasBurstRef.current = false; return; }
       if (!storeRef.current.cameraAllowed) {
         scrollOpenRef.current = scrollOpenRef.current > 0.5 ? 0.08 : 0.92;
@@ -329,6 +330,7 @@ export default function Scene() {
     // Right-click: shockwave
     const handleContextMenu = (e) => {
       e.preventDefault();
+      if (storeRef.current.phase !== 'active') return;
       if (!storeRef.current.cameraAllowed) {
         shakeAmtRef.current = 1.0;
         forceGestureRef.current = { gesture: 'ROCK', until: performance.now() + 900 };
@@ -337,12 +339,14 @@ export default function Scene() {
 
     // Double-click: cycle palette
     const handleDblClick = () => {
+      if (storeRef.current.phase !== 'active') return;
       const st = useStore.getState();
       st.setPaletteIdx(st.paletteIdx + 1);
     };
 
     // Hold to charge
     const handleMouseDown = (e) => {
+      if (storeRef.current.phase !== 'active') return;
       if (e.button === 0 && !storeRef.current.cameraAllowed) {
         isHoldingRef.current = true;
         holdStartRef.current = performance.now();
@@ -351,6 +355,7 @@ export default function Scene() {
 
     // Release burst after hold ≥ 0.5s
     const handleMouseUp = (e) => {
+      if (storeRef.current.phase !== 'active') return;
       if (e.button !== 0 || !isHoldingRef.current || storeRef.current.cameraAllowed) return;
       const held = (performance.now() - holdStartRef.current) / 1000;
       if (held >= 0.5) {

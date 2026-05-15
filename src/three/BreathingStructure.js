@@ -234,14 +234,6 @@ export function updateStructure(struct, state, dt) {
 
   struct.allMats.forEach(applyUniforms);
 
-  // Layer-specific opacity modulation
-  struct.layerMeshes.forEach(({ mat, baseOpacity }, i) => {
-    // Inner layers pulse more subtly; outer layer is primary
-    const depthFactor = 1 - i * 0.3;
-    const opacityMod = baseOpacity * (0.8 + bw * 0.2) * depthFactor;
-    // Handled in shader — just a reference; no direct opacity needed
-  });
-
   // Node glow pulse
   struct.nodeMat.opacity = Math.min(0.85, 0.28 + bw * 0.38 + energyLevel * 0.25);
 }

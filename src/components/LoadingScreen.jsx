@@ -17,17 +17,23 @@ export default function LoadingScreen({ onComplete }) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
     let t;
     const advance = (i) => {
+      if (!mounted) return;
       if (i >= SEQUENCE.length) {
-        setTimeout(() => { setDone(true); setTimeout(onComplete, 600); }, 380);
+        t = setTimeout(() => {
+          if (!mounted) return;
+          setDone(true);
+          setTimeout(() => { if (mounted) onComplete(); }, 600);
+        }, 380);
         return;
       }
       setStep(i);
       t = setTimeout(() => advance(i + 1), 480 + i * 70);
     };
     t = setTimeout(() => advance(0), 320);
-    return () => clearTimeout(t);
+    return () => { mounted = false; clearTimeout(t); };
   }, []);
 
   const pct   = SEQUENCE[step]?.pct ?? 100;
