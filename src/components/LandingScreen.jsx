@@ -63,25 +63,25 @@ export default function LandingScreen({ onEnter }) {
       >
         {/* Category label */}
         <motion.div variants={itemV} style={{
-          fontSize: 9, fontWeight: 500, letterSpacing: '0.32em',
-          color: 'rgba(255,255,255,0.42)', textTransform: 'uppercase',
+          fontSize: 11, fontWeight: 600, letterSpacing: '0.30em',
+          color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
           marginBottom: 22,
         }}>
           Interactive Installation · 2026
         </motion.div>
 
         {/* Title */}
-        <motion.div variants={itemV} style={{ marginBottom: 30 }}>
+        <motion.div variants={itemV} style={{ marginBottom: 32 }}>
           <div style={{
             fontSize: 'clamp(44px, 9vw, 88px)', fontWeight: 200,
-            letterSpacing: '0.38em', color: 'rgba(255,255,255,0.92)',
+            letterSpacing: '0.38em', color: 'rgba(255,255,255,0.94)',
             lineHeight: 1.02, textTransform: 'uppercase',
           }}>
             BREATHING
           </div>
           <div style={{
             fontSize: 'clamp(44px, 9vw, 88px)', fontWeight: 200,
-            letterSpacing: '0.38em', color: 'rgba(255,255,255,0.92)',
+            letterSpacing: '0.38em', color: 'rgba(255,255,255,0.94)',
             lineHeight: 1.02, textTransform: 'uppercase', marginTop: 4,
           }}>
             STRUCTURE
@@ -90,17 +90,17 @@ export default function LandingScreen({ onEnter }) {
 
         {/* Tagline */}
         <motion.div variants={itemV} style={{
-          fontSize: 'clamp(14px, 1.8vw, 17px)', fontWeight: 300,
-          letterSpacing: '0.03em', color: 'rgba(255,255,255,0.68)',
-          lineHeight: 1.6, marginBottom: 14,
+          fontSize: 'clamp(15px, 1.9vw, 18px)', fontWeight: 300,
+          letterSpacing: '0.03em', color: 'rgba(255,255,255,0.75)',
+          lineHeight: 1.6, marginBottom: 16,
         }}>
           손의 움직임이 만들어내는 살아있는 구조체
         </motion.div>
 
         {/* Description */}
         <motion.div variants={itemV} style={{
-          fontSize: 13, fontWeight: 400, letterSpacing: '0.02em',
-          color: 'rgba(255,255,255,0.50)', lineHeight: 1.85,
+          fontSize: 14, fontWeight: 400, letterSpacing: '0.02em',
+          color: 'rgba(255,255,255,0.55)', lineHeight: 1.85,
           marginBottom: 52,
         }}>
           WebGL과 실시간 손 인식을 결합한 인터랙티브 설치 작품.
@@ -111,7 +111,7 @@ export default function LandingScreen({ onEnter }) {
         {/* Divider + CTA row */}
         <motion.div variants={itemV}>
           <div style={{
-            height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 36,
+            height: 1, background: 'rgba(255,255,255,0.10)', marginBottom: 36,
           }} />
 
           <div style={{
@@ -119,8 +119,8 @@ export default function LandingScreen({ onEnter }) {
             justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
           }}>
             <div style={{
-              fontSize: 9, fontWeight: 500, letterSpacing: '0.22em',
-              color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase',
+              fontSize: 11, fontWeight: 500, letterSpacing: '0.20em',
+              color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
             }}>
               WebGL · Three.js · MediaPipe · React
             </div>
@@ -138,9 +138,9 @@ export default function LandingScreen({ onEnter }) {
                 border: '1px solid rgba(48,148,255,0.34)',
                 borderRadius: 3,
                 background: 'rgba(16,40,100,0.10)',
-                color: 'rgba(255,255,255,0.78)',
-                fontSize: 11, fontWeight: 500,
-                letterSpacing: '0.26em', fontFamily: FONT,
+                color: 'rgba(255,255,255,0.82)',
+                fontSize: 12, fontWeight: 600,
+                letterSpacing: '0.24em', fontFamily: FONT,
                 textTransform: 'uppercase',
                 cursor: 'none', outline: 'none',
                 transition: 'border-color 0.22s, color 0.22s, background 0.22s',
