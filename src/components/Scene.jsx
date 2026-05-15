@@ -132,7 +132,7 @@ function buildEnvironment(scene) {
   fillLight.position.set(0, -2, 1);
   scene.add(fillLight);
 
-  const gazeLight = new THREE.PointLight(0x2255aa, 1.2, 9);
+  const gazeLight = new THREE.PointLight(0x2255aa, 0.60, 5.0);
   gazeLight.position.set(3, 2, 3);
   scene.add(gazeLight);
 
@@ -167,6 +167,29 @@ function buildEnergyBeam(scene) {
   scene.add(beam);
 
   return { beam, mat, posAttr };
+}
+
+const BLAST_RING_N = 4;
+
+function buildBlastRings(scene) {
+  const rings = [];
+  for (let i = 0; i < BLAST_RING_N; i++) {
+    const geo = new THREE.RingGeometry(0.82, 1.0, 60);
+    const mat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0x3094ff),
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.visible = false;
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    rings.push({ mesh, mat });
+  }
+  return rings;
 }
 
 const TRAIL_N = 32;
@@ -210,6 +233,7 @@ export default function Scene() {
   const shakeAmtRef     = useRef(0);
   const forceGestureRef = useRef({ gesture: null, until: 0 });
   const wasBurstRef     = useRef(false);
+  const blastTriggerRef = useRef(0);
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -244,7 +268,8 @@ export default function Scene() {
     const particles = buildParticles(scene);
     const camCtrl   = new CameraController(camera);
     const { beam, mat: beamMat, posAttr: beamPos } = buildEnergyBeam(scene);
-    const trail = buildMouseTrail(scene);
+    const trail      = buildMouseTrail(scene);
+    const blastRings = buildBlastRings(scene);
 
     const raycaster  = new THREE.Raycaster();
     const worldPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -253,6 +278,7 @@ export default function Scene() {
     const _ndcVec    = new THREE.Vector2();
     const _colA      = new THREE.Color();
     const _colB      = new THREE.Color();
+    const _ringCol   = new THREE.Color();
 
     // Trail ring buffer (pre-allocated, no per-frame allocation)
     const trailHist = new Array(TRAIL_N).fill(null).map(() => new THREE.Vector3());
@@ -353,6 +379,7 @@ export default function Scene() {
         e.preventDefault();
         shakeAmtRef.current = 1.6;
         scrollOpenRef.current = 1.0;
+        blastTriggerRef.current = performance.now();
         forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 1400 };
         setTimeout(() => { scrollOpenRef.current = 0.08; }, 1400);
       }
@@ -473,18 +500,38 @@ export default function Scene() {
         hb0[2] + (hb1[2]-hb0[2])*pf + s.smoothOpenness * 0.18,
       );
 
-      // Gaze light tracks cursor
+      // Gaze light tracks cursor (reduced intensity + range)
       const mx = mousePosRef.current;
-      const glx = (mx.x - 0.5) * 6;
-      const gly = -(mx.y - 0.5) * 4;
+      const glx = (mx.x - 0.5) * 3.5;
+      const gly = -(mx.y - 0.5) * 2.4;
       env.gazeLight.position.x += (glx - env.gazeLight.position.x) * Math.min(dt * 1.8, 1);
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
-      env.gazeLight.intensity   = 0.8 + bwVal * 0.5 + s.energyLevel * 0.8;
+      env.gazeLight.intensity   = 0.35 + bwVal * 0.20 + s.energyLevel * 0.35;
+
+      // Blast rings
+      const blastAge = (now - blastTriggerRef.current) / 1000;
+      const RING_PALETTE = [0x3094ff, 0x6622ee, 0xe03020, 0xa0b8d0];
+      _ringCol.setHex(RING_PALETTE[Math.round(paletteCurrent) % 4]);
+      for (let ri = 0; ri < blastRings.length; ri++) {
+        const { mesh, mat: rMat } = blastRings[ri];
+        const age = blastAge - ri * 0.20;
+        if (age > 0 && age < 1.8) {
+          const p = age / 1.8;
+          mesh.scale.setScalar(0.4 + p * 5.5);
+          rMat.opacity = Math.pow(1 - p, 1.5) * 0.60;
+          rMat.color.copy(_ringCol);
+          mesh.visible = true;
+        } else {
+          mesh.visible = false;
+        }
+      }
 
       // Post-processing
-      bloom.strength = 0.38 + bwVal * 0.14 + s.energyLevel * 0.38 + s.smoothOpenness * 0.1;
+      const blastBoost = blastAge < 0.4 ? (0.4 - blastAge) * 3.5 : 0;
+      bloom.strength = 0.38 + bwVal * 0.14 + s.energyLevel * 0.38 + s.smoothOpenness * 0.1
+        + shakeAmtRef.current * 0.35 + blastBoost;
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
-      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35 + shakeAmtRef.current * 0.4, 1.0);
+      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35 + shakeAmtRef.current * 0.4 + blastBoost * 0.3, 1.0);
       grainPass.uniforms.uTime.value = now * 0.001;
 
       // Mouse trail (only during active phase)

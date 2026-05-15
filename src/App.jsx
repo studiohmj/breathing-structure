@@ -55,6 +55,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [setPaletteIdx]);
 
+  // Auto-open guide when entering the experience
+  useEffect(() => {
+    if (appPhase === 'active') {
+      const t = setTimeout(() => setShowGuide(true), 2600);
+      return () => clearTimeout(t);
+    }
+  }, [appPhase]);
+
   const handleLandingEnter = () => setAppPhase('loading');
   const handleLoadComplete = () => setAppPhase('permission');
 
