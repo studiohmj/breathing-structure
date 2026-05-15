@@ -65,7 +65,37 @@ const BeamFrag = `
   }
 `;
 
-// ── Per-palette environment settings
+const TrailVert = `
+  attribute float aAge;
+  varying float vAge;
+  void main() {
+    vAge = aAge;
+    vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = max(1.0, (1.0 - aAge) * 10.0 * (220.0 / -mvPos.z));
+    gl_Position = projectionMatrix * mvPos;
+  }
+`;
+const TrailFrag = `
+  uniform float uPalette;
+  varying float vAge;
+  void main() {
+    vec2 d = gl_PointCoord - 0.5;
+    float r = length(d);
+    if (r > 0.5) discard;
+    float alpha = (1.0 - vAge) * smoothstep(0.5, 0.08, r) * 0.55;
+    float pp = clamp(uPalette, 0.0, 3.0);
+    vec3 c0 = vec3(0.18, 0.55, 1.00);
+    vec3 c1 = vec3(0.62, 0.22, 1.00);
+    vec3 c2 = vec3(1.00, 0.32, 0.18);
+    vec3 c3 = vec3(0.72, 0.84, 0.96);
+    vec3 col = mix(
+      mix(mix(c0, c1, clamp(pp, 0., 1.)), c2, clamp(pp - 1., 0., 1.)),
+      c3, clamp(pp - 2., 0., 1.)
+    );
+    gl_FragColor = vec4(col, alpha);
+  }
+`;
+
 const PALETTE_ENVS = [
   { bgHex: 0x020408, heartBase:[0.08,0.22,0.52], gazeHex: 0x2255aa, fogDensity: 0.058 },
   { bgHex: 0x030208, heartBase:[0.10,0.06,0.42], gazeHex: 0x401890, fogDensity: 0.060 },
@@ -139,11 +169,46 @@ function buildEnergyBeam(scene) {
   return { beam, mat, posAttr };
 }
 
+const TRAIL_N = 32;
+
+function buildMouseTrail(scene) {
+  const posArr = new Float32Array(TRAIL_N * 3);
+  const ageArr = new Float32Array(TRAIL_N);
+
+  const geo = new THREE.BufferGeometry();
+  const posAttr = new THREE.BufferAttribute(posArr, 3);
+  const ageAttr = new THREE.BufferAttribute(ageArr, 1);
+  posAttr.setUsage(THREE.DynamicDrawUsage);
+  ageAttr.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('position', posAttr);
+  geo.setAttribute('aAge', ageAttr);
+  geo.setDrawRange(0, 0);
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uPalette: { value: 0 } },
+    vertexShader: TrailVert,
+    fragmentShader: TrailFrag,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const points = new THREE.Points(geo, mat);
+  points.frustumCulled = false;
+  scene.add(points);
+
+  return { points, geo, mat, posAttr, ageAttr };
+}
+
 export default function Scene() {
-  const mountRef    = useRef(null);
-  const storeRef    = useRef(useStore.getState());
-  const mousePosRef = useRef({ x: 0.5, y: 0.5 });
-  const mouseModeOpenRef = useRef(false);
+  const mountRef        = useRef(null);
+  const storeRef        = useRef(useStore.getState());
+  const mousePosRef     = useRef({ x: 0.5, y: 0.5 });
+  const scrollOpenRef   = useRef(0.25);
+  const isHoldingRef    = useRef(false);
+  const holdStartRef    = useRef(0);
+  const shakeAmtRef     = useRef(0);
+  const forceGestureRef = useRef({ gesture: null, until: 0 });
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -154,7 +219,6 @@ export default function Scene() {
     const el = mountRef.current;
     if (!el) return;
 
-    // ── Renderer — pixel ratio capped at 1.5 for performance
     const renderer = new THREE.WebGLRenderer({
       antialias: false,
       alpha: false,
@@ -167,30 +231,32 @@ export default function Scene() {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     el.appendChild(renderer.domElement);
 
-    // ── Scene + camera
-    const scene = new THREE.Scene();
+    const scene  = new THREE.Scene();
     scene.background = new THREE.Color(0x020408);
     scene.fog = new THREE.FogExp2(0x020408, 0.058);
 
     const camera = new THREE.PerspectiveCamera(52, el.offsetWidth / el.offsetHeight, 0.05, 60);
     camera.position.set(0, 0, 5.0);
 
-    // ── Systems
     const env       = buildEnvironment(scene);
     const structure = buildStructure(scene);
     const particles = buildParticles(scene);
     const camCtrl   = new CameraController(camera);
     const { beam, mat: beamMat, posAttr: beamPos } = buildEnergyBeam(scene);
+    const trail = buildMouseTrail(scene);
 
-    // Reusable objects
     const raycaster  = new THREE.Raycaster();
     const worldPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
     const _handWorld = new THREE.Vector3();
+    const _trailPt   = new THREE.Vector3();
     const _ndcVec    = new THREE.Vector2();
     const _colA      = new THREE.Color();
     const _colB      = new THREE.Color();
 
-    // ── Post-processing — bloom at half resolution for perf
+    // Trail ring buffer (pre-allocated, no per-frame allocation)
+    const trailHist = new Array(TRAIL_N).fill(null).map(() => new THREE.Vector3());
+    let trailCount  = 0;
+
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
 
@@ -205,38 +271,104 @@ export default function Scene() {
     const grainPass = new ShaderPass(GrainShader);
     composer.addPass(grainPass);
 
-    // ── Mouse tracking
+    // ── Event handlers ──────────────────────────────────────────────
+
     const handleMouseMove = (e) => {
-      const x = e.clientX / window.innerWidth;
-      const y = e.clientY / window.innerHeight;
-      mousePosRef.current = { x, y };
-
-      if (!storeRef.current.cameraAllowed) {
-        useStore.getState().updateHand({
-          handPresent: true,
-          gesture: 'NONE',
-          handOpenness: mouseModeOpenRef.current ? 0.92 : 0.12,
-          handPosition: { x, y },
-          handVelocity: 0,
-        });
-      }
+      mousePosRef.current = {
+        x: e.clientX / window.innerWidth,
+        y: e.clientY / window.innerHeight,
+      };
     };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Mouse click: toggle openness in mouse mode
+    // Click: toggle openness between closed / open
     const handleClick = () => {
       if (!storeRef.current.cameraAllowed) {
-        mouseModeOpenRef.current = !mouseModeOpenRef.current;
+        scrollOpenRef.current = scrollOpenRef.current > 0.5 ? 0.08 : 0.92;
       }
     };
-    window.addEventListener('click', handleClick);
 
-    // ── Animation loop
-    let breathPhase   = 0;
+    // Scroll: continuously control openness
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (!storeRef.current.cameraAllowed) {
+        scrollOpenRef.current = Math.max(0, Math.min(1,
+          scrollOpenRef.current - e.deltaY * 0.0014
+        ));
+      }
+    };
+
+    // Right-click: shockwave
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      if (!storeRef.current.cameraAllowed) {
+        shakeAmtRef.current = 1.0;
+        forceGestureRef.current = { gesture: 'ROCK', until: performance.now() + 900 };
+      }
+    };
+
+    // Double-click: cycle palette
+    const handleDblClick = () => {
+      const st = useStore.getState();
+      st.setPaletteIdx(st.paletteIdx + 1);
+    };
+
+    // Hold to charge
+    const handleMouseDown = (e) => {
+      if (e.button === 0 && !storeRef.current.cameraAllowed) {
+        isHoldingRef.current = true;
+        holdStartRef.current = performance.now();
+      }
+    };
+
+    // Release burst after hold ≥ 0.5s
+    const handleMouseUp = (e) => {
+      if (e.button === 0 && isHoldingRef.current && !storeRef.current.cameraAllowed) {
+        const held = (performance.now() - holdStartRef.current) / 1000;
+        if (held >= 0.5) {
+          shakeAmtRef.current = Math.min(held * 0.7, 1.4);
+          forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 900 };
+        }
+        isHoldingRef.current = false;
+      }
+    };
+
+    // Keyboard gesture simulation + Space burst
+    const handleKeyDown = (e) => {
+      if (storeRef.current.phase !== 'active') return;
+      if (storeRef.current.cameraAllowed) return;
+      const gMap = { '1': 'OPEN_PALM', '2': 'CLOSED_FIST', '3': 'POINTING', '4': 'ROCK' };
+      if (gMap[e.key]) {
+        forceGestureRef.current = { gesture: gMap[e.key], until: performance.now() + 1600 };
+        if (e.key === '1') scrollOpenRef.current = 0.96;
+        if (e.key === '2') scrollOpenRef.current = 0.04;
+        if (e.key === '4') shakeAmtRef.current = 0.9;
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        shakeAmtRef.current = 1.6;
+        scrollOpenRef.current = 1.0;
+        forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 1400 };
+        setTimeout(() => { scrollOpenRef.current = 0.08; }, 1400);
+      }
+    };
+
+    window.addEventListener('mousemove',   handleMouseMove,   { passive: true });
+    window.addEventListener('click',       handleClick);
+    window.addEventListener('wheel',       handleWheel,       { passive: false });
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('dblclick',    handleDblClick);
+    window.addEventListener('mousedown',   handleMouseDown);
+    window.addEventListener('mouseup',     handleMouseUp);
+    window.addEventListener('keydown',     handleKeyDown);
+
+    // ── Animation loop ───────────────────────────────────────────────
+
+    let breathPhase    = 0;
     let paletteCurrent = 0;
     const BREATH_PERIOD = 4.5;
-    let lastTime = performance.now();
-    let running  = true;
+    let lastTime     = performance.now();
+    let lastIdleTime = 0;
+    let running      = true;
     let frameId;
 
     const animate = () => {
@@ -244,22 +376,47 @@ export default function Scene() {
       frameId = requestAnimationFrame(animate);
 
       const now = performance.now();
+      const s   = storeRef.current;
+
+      // Throttle to ~12 fps when scene is hidden behind overlay
+      if (s.phase !== 'active') {
+        if (now - lastIdleTime < 80) return;
+        lastIdleTime = now;
+        lastTime     = now;
+        renderer.render(scene, camera);
+        return;
+      }
+
       const dt  = Math.min((now - lastTime) / 1000, 0.05);
       lastTime  = now;
 
-      const s = storeRef.current;
+      // Mouse mode: frame-driven hand update (covers all interaction types)
+      if (!s.cameraAllowed) {
+        const pos = mousePosRef.current;
+        const fg  = forceGestureRef.current;
+        const gesture = (fg.gesture && now < fg.until) ? fg.gesture : 'NONE';
+        const openness = isHoldingRef.current
+          ? Math.min((now - holdStartRef.current) / 1500, 1.0)
+          : scrollOpenRef.current;
+
+        useStore.getState().updateHand({
+          handPresent: true,
+          gesture,
+          handOpenness: openness,
+          handPosition: pos,
+          handVelocity: 0,
+        });
+      }
 
       // Breath
       const breathSpeed = 1 / BREATH_PERIOD + s.smoothOpenness * 0.05;
       breathPhase = (breathPhase + dt * breathSpeed) % 1;
-
       const bwVal = Math.sin(breathPhase * Math.PI * 2) * 0.5 + 0.5;
 
-      // Palette smooth interpolation
+      // Palette interpolation
       const paletteTarget = s.paletteIdx ?? 0;
       paletteCurrent += (paletteTarget - paletteCurrent) * Math.min(dt * 1.8, 1);
 
-      // Palette environment lerp
       const pi0 = Math.max(0, Math.min(2, Math.floor(paletteCurrent)));
       const pi1 = pi0 + 1;
       const pf  = paletteCurrent - pi0;
@@ -290,7 +447,16 @@ export default function Scene() {
       updateParticles(particles, state, dt);
       camCtrl.update(state, dt);
 
-      // Heart light — palette-aware base color
+      // Camera shake (applied after camCtrl so it stacks on top)
+      if (shakeAmtRef.current > 0.004) {
+        camera.position.x += (Math.random() - 0.5) * shakeAmtRef.current * 0.15;
+        camera.position.y += (Math.random() - 0.5) * shakeAmtRef.current * 0.15;
+        shakeAmtRef.current *= 0.78;
+      } else {
+        shakeAmtRef.current = 0;
+      }
+
+      // Heart light
       const hb0 = pe0.heartBase, hb1 = pe1.heartBase;
       env.heart.intensity = 1.6 + bwVal * 1.0 + s.energyLevel * 1.4;
       env.heart.color.setRGB(
@@ -299,7 +465,7 @@ export default function Scene() {
         hb0[2] + (hb1[2]-hb0[2])*pf + s.smoothOpenness * 0.18,
       );
 
-      // Gaze light follows mouse
+      // Gaze light tracks cursor
       const mx = mousePosRef.current;
       const glx = (mx.x - 0.5) * 6;
       const gly = -(mx.y - 0.5) * 4;
@@ -307,15 +473,36 @@ export default function Scene() {
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
       env.gazeLight.intensity   = 0.8 + bwVal * 0.5 + s.energyLevel * 0.8;
 
-      // Bloom
+      // Post-processing
       bloom.strength = 0.38 + bwVal * 0.14 + s.energyLevel * 0.38 + s.smoothOpenness * 0.1;
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
-
-      // Chroma
-      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35, 1.0);
-
-      // Grain
+      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35 + shakeAmtRef.current * 0.4, 1.0);
       grainPass.uniforms.uTime.value = now * 0.001;
+
+      // Mouse trail (only during active phase)
+      if (s.phase === 'active') {
+        _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
+        raycaster.setFromCamera(_ndcVec, camera);
+        if (raycaster.ray.intersectPlane(worldPlane, _trailPt)) {
+          // Shift history (newest at index 0)
+          const end = Math.min(trailCount, TRAIL_N - 1);
+          for (let i = end; i > 0; i--) trailHist[i].copy(trailHist[i - 1]);
+          trailHist[0].copy(_trailPt);
+          trailCount = Math.min(trailCount + 1, TRAIL_N);
+
+          for (let i = 0; i < trailCount; i++) {
+            trail.posAttr.setXYZ(i, trailHist[i].x, trailHist[i].y, trailHist[i].z);
+            trail.ageAttr.setX(i, trailCount > 1 ? i / (trailCount - 1) : 0);
+          }
+          trail.posAttr.needsUpdate = true;
+          trail.ageAttr.needsUpdate = true;
+          trail.geo.setDrawRange(0, trailCount);
+          trail.mat.uniforms.uPalette.value = paletteCurrent;
+        }
+      } else {
+        trail.geo.setDrawRange(0, 0);
+        trailCount = 0;
+      }
 
       // Energy beam
       beamMat.uniforms.uTime.value    = now * 0.001;
@@ -365,9 +552,15 @@ export default function Scene() {
     return () => {
       running = false;
       cancelAnimationFrame(frameId);
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('click', handleClick);
+      window.removeEventListener('resize',      onResize);
+      window.removeEventListener('mousemove',   handleMouseMove);
+      window.removeEventListener('click',       handleClick);
+      window.removeEventListener('wheel',       handleWheel);
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('dblclick',    handleDblClick);
+      window.removeEventListener('mousedown',   handleMouseDown);
+      window.removeEventListener('mouseup',     handleMouseUp);
+      window.removeEventListener('keydown',     handleKeyDown);
 
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose();

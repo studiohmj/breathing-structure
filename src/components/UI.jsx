@@ -24,12 +24,18 @@ const HAND_GUIDE = [
   { gesture: 'Open Palm',    desc: 'Structure expands' },
   { gesture: 'Closed Fist',  desc: 'Structure compresses' },
   { gesture: 'Index Finger', desc: 'Energy beam + camera shift' },
-  { gesture: 'Rock Sign',    desc: 'Camera impulse' },
+  { gesture: 'Rock Sign',    desc: 'Camera shockwave' },
 ];
 
 const MOUSE_GUIDE = [
-  { gesture: 'Move',  desc: 'Structure parallax' },
-  { gesture: 'Click', desc: 'Toggle open / close' },
+  { gesture: 'Move',         desc: 'Structure parallax' },
+  { gesture: 'Scroll',       desc: 'Openness control' },
+  { gesture: 'Click',        desc: 'Toggle open / close' },
+  { gesture: 'Hold + Release', desc: 'Charge → burst' },
+  { gesture: 'Right Click',  desc: 'Shockwave' },
+  { gesture: 'Double Click', desc: 'Cycle palette' },
+  { gesture: 'Space',        desc: 'Max energy burst' },
+  { gesture: '1 / 2 / 3 / 4', desc: 'Simulate gestures' },
 ];
 
 function Dot({ active }) {
