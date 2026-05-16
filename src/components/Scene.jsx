@@ -332,7 +332,7 @@ export default function Scene() {
       e.preventDefault();
       if (storeRef.current.phase !== 'active') return;
       if (!storeRef.current.cameraAllowed) {
-        shakeAmtRef.current = 1.0;
+        shakeAmtRef.current = 0.55;
         forceGestureRef.current = { gesture: 'ROCK', until: performance.now() + 900 };
       }
     };
@@ -359,7 +359,7 @@ export default function Scene() {
       if (e.button !== 0 || !isHoldingRef.current || storeRef.current.cameraAllowed) return;
       const held = (performance.now() - holdStartRef.current) / 1000;
       if (held >= 0.5) {
-        shakeAmtRef.current = Math.min(held * 0.7, 1.4);
+        shakeAmtRef.current = Math.min(held * 0.45, 0.85);
         forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 900 };
         wasBurstRef.current = true; // suppress the following click event
       }
@@ -384,11 +384,11 @@ export default function Scene() {
         forceGestureRef.current = { gesture: gMap[e.key], until: performance.now() + 1600 };
         if (e.key === '1') scrollOpenRef.current = 0.96;
         if (e.key === '2') scrollOpenRef.current = 0.04;
-        if (e.key === '4') shakeAmtRef.current = 0.9;
+        if (e.key === '4') shakeAmtRef.current = 0.55;
       }
       if (e.key === ' ') {
         e.preventDefault();
-        shakeAmtRef.current = 1.6;
+        shakeAmtRef.current = 0.9;
         scrollOpenRef.current = 1.0;
         blastTriggerRef.current = performance.now();
         forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 1400 };
@@ -493,11 +493,13 @@ export default function Scene() {
       updateParticles(particles, state, dt);
       camCtrl.update(state, dt);
 
-      // Camera shake (applied after camCtrl so it stacks on top)
-      if (shakeAmtRef.current > 0.004) {
-        camera.position.x += (Math.random() - 0.5) * shakeAmtRef.current * 0.15;
-        camera.position.y += (Math.random() - 0.5) * shakeAmtRef.current * 0.15;
-        shakeAmtRef.current *= 0.78;
+      // Camera shake — sin-layered oscillation (organic decay, no random jitter)
+      if (shakeAmtRef.current > 0.003) {
+        const t = now * 0.001;
+        const amt = shakeAmtRef.current;
+        camera.position.x += (Math.sin(t * 51.3) * 0.65 + Math.sin(t * 29.7) * 0.35) * amt * 0.055;
+        camera.position.y += (Math.sin(t * 38.9 + 1.4) * 0.65 + Math.sin(t * 67.1) * 0.35) * amt * 0.04;
+        shakeAmtRef.current *= 0.88;
       } else {
         shakeAmtRef.current = 0;
       }
@@ -542,10 +544,10 @@ export default function Scene() {
       }
 
       // Post-processing — bloom capped to prevent black-screen overdrive
-      const blastBoost = blastAge < 0.4 ? (0.4 - blastAge) * 1.5 : 0;
-      bloom.strength = Math.min(0.95,
-        0.35 + bwVal * 0.12 + s.energyLevel * 0.30 + s.smoothOpenness * 0.08
-        + shakeAmtRef.current * 0.15 + blastBoost * 0.6
+      const blastBoost = blastAge < 0.6 ? (0.6 - blastAge) * 0.6 : 0;
+      bloom.strength = Math.min(0.80,
+        0.35 + bwVal * 0.12 + s.energyLevel * 0.28 + s.smoothOpenness * 0.08
+        + shakeAmtRef.current * 0.08 + blastBoost * 0.3
       );
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
       chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2, 0.5);
