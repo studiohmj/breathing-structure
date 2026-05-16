@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-const BASE_DIST   = 5.0;
+const BASE_DIST   = 5.2;
 const ORBIT_SLOW  = 32;
 const DRIFT_SLOW  = 47;
 const PAN_MAX     = 0.55;
-const ZOOM_RANGE  = 0.75;
+const ZOOM_RANGE  = 2.8;
 
 function lerp(a, b, t) { return a + (b - a) * t; }
 
@@ -46,8 +46,8 @@ export class CameraController {
       panY = -(smoothPosition.y - 0.5) * PAN_MAX * 0.55;
     }
 
-    // Openness zoom
-    const zoomAdd = smoothOpenness * ZOOM_RANGE;
+    // Openness zoom — bidirectional: scroll down → pull in, scroll up → push out
+    const zoomAdd = (smoothOpenness - 0.5) * ZOOM_RANGE;
 
     // Velocity micro-shake — sin-based to avoid random jitter
     const shakeMag = Math.min(smoothVelocity * 0.012, 0.04);

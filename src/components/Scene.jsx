@@ -97,14 +97,14 @@ const TrailFrag = `
 `;
 
 const PALETTE_ENVS = [
-  { bgHex: 0x020408, heartBase:[0.08,0.22,0.52], gazeHex: 0x2255aa, fogDensity: 0.058 }, // 0 Blue
-  { bgHex: 0x030208, heartBase:[0.10,0.06,0.42], gazeHex: 0x401890, fogDensity: 0.060 }, // 1 Violet
-  { bgHex: 0x060202, heartBase:[0.42,0.06,0.12], gazeHex: 0x901828, fogDensity: 0.055 }, // 2 Crimson
-  { bgHex: 0x030303, heartBase:[0.12,0.14,0.16], gazeHex: 0x283038, fogDensity: 0.062 }, // 3 Mono
-  { bgHex: 0x010608, heartBase:[0.04,0.30,0.38], gazeHex: 0x0a6070, fogDensity: 0.056 }, // 4 Teal
-  { bgHex: 0x070500, heartBase:[0.38,0.20,0.02], gazeHex: 0x7a5a10, fogDensity: 0.054 }, // 5 Amber
-  { bgHex: 0x010602, heartBase:[0.05,0.30,0.08], gazeHex: 0x126618, fogDensity: 0.058 }, // 6 Emerald
-  { bgHex: 0x060104, heartBase:[0.40,0.04,0.24], gazeHex: 0x901058, fogDensity: 0.056 }, // 7 Rose
+  { bgHex: 0x020408, heartBase:[0.10,0.28,0.68], gazeHex: 0x2255cc, fogDensity: 0.058 }, // 0 Blue
+  { bgHex: 0x040108, heartBase:[0.20,0.04,0.60], gazeHex: 0x5510cc, fogDensity: 0.060 }, // 1 Violet
+  { bgHex: 0x080101, heartBase:[0.60,0.06,0.10], gazeHex: 0xcc1820, fogDensity: 0.055 }, // 2 Crimson
+  { bgHex: 0x030303, heartBase:[0.18,0.20,0.24], gazeHex: 0x405060, fogDensity: 0.062 }, // 3 Mono
+  { bgHex: 0x010608, heartBase:[0.04,0.50,0.62], gazeHex: 0x0890a8, fogDensity: 0.056 }, // 4 Teal
+  { bgHex: 0x090500, heartBase:[0.65,0.34,0.02], gazeHex: 0xcc8810, fogDensity: 0.054 }, // 5 Amber
+  { bgHex: 0x010902, heartBase:[0.06,0.55,0.12], gazeHex: 0x18aa22, fogDensity: 0.058 }, // 6 Emerald
+  { bgHex: 0x090104, heartBase:[0.62,0.04,0.36], gazeHex: 0xcc1080, fogDensity: 0.056 }, // 7 Rose
 ];
 
 function buildEnvironment(scene) {
