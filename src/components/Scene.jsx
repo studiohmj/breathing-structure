@@ -502,9 +502,9 @@ export default function Scene() {
         shakeAmtRef.current = 0;
       }
 
-      // Heart light
+      // Heart light — capped to prevent lighting overdrive
       const hb0 = pe0.heartBase, hb1 = pe1.heartBase;
-      env.heart.intensity = 1.6 + bwVal * 1.0 + s.energyLevel * 1.4;
+      env.heart.intensity = Math.min(2.4, 1.2 + bwVal * 0.7 + s.energyLevel * 0.9);
       env.heart.color.setRGB(
         hb0[0] + (hb1[0]-hb0[0])*pf + s.energyLevel * 0.06,
         hb0[1] + (hb1[1]-hb0[1])*pf + s.smoothOpenness * 0.12,
@@ -548,32 +548,26 @@ export default function Scene() {
         + shakeAmtRef.current * 0.15 + blastBoost * 0.6
       );
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
-      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35 + shakeAmtRef.current * 0.4 + blastBoost * 0.3, 1.0);
+      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2, 0.5);
       grainPass.uniforms.uTime.value = now * 0.001;
 
-      // Mouse trail (only during active phase)
-      if (s.phase === 'active') {
-        _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
-        raycaster.setFromCamera(_ndcVec, camera);
-        if (raycaster.ray.intersectPlane(worldPlane, _trailPt)) {
-          // Shift history (newest at index 0)
-          const end = Math.min(trailCount, TRAIL_N - 1);
-          for (let i = end; i > 0; i--) trailHist[i].copy(trailHist[i - 1]);
-          trailHist[0].copy(_trailPt);
-          trailCount = Math.min(trailCount + 1, TRAIL_N);
+      // Mouse trail
+      _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
+      raycaster.setFromCamera(_ndcVec, camera);
+      if (raycaster.ray.intersectPlane(worldPlane, _trailPt)) {
+        const end = Math.min(trailCount, TRAIL_N - 1);
+        for (let i = end; i > 0; i--) trailHist[i].copy(trailHist[i - 1]);
+        trailHist[0].copy(_trailPt);
+        trailCount = Math.min(trailCount + 1, TRAIL_N);
 
-          for (let i = 0; i < trailCount; i++) {
-            trail.posAttr.setXYZ(i, trailHist[i].x, trailHist[i].y, trailHist[i].z);
-            trail.ageAttr.setX(i, trailCount > 1 ? i / (trailCount - 1) : 0);
-          }
-          trail.posAttr.needsUpdate = true;
-          trail.ageAttr.needsUpdate = true;
-          trail.geo.setDrawRange(0, trailCount);
-          trail.mat.uniforms.uPalette.value = paletteCurrent;
+        for (let i = 0; i < trailCount; i++) {
+          trail.posAttr.setXYZ(i, trailHist[i].x, trailHist[i].y, trailHist[i].z);
+          trail.ageAttr.setX(i, trailCount > 1 ? i / (trailCount - 1) : 0);
         }
-      } else {
-        trail.geo.setDrawRange(0, 0);
-        trailCount = 0;
+        trail.posAttr.needsUpdate = true;
+        trail.ageAttr.needsUpdate = true;
+        trail.geo.setDrawRange(0, trailCount);
+        trail.mat.uniforms.uPalette.value = paletteCurrent;
       }
 
       // Energy beam

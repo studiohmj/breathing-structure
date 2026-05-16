@@ -25,7 +25,7 @@ export default function LoadingScreen({ onComplete }) {
         t = setTimeout(() => {
           if (!mounted) return;
           setDone(true);
-          setTimeout(() => { if (mounted) onComplete(); }, 600);
+          t = setTimeout(() => { if (mounted) onComplete(); }, 600);
         }, 380);
         return;
       }

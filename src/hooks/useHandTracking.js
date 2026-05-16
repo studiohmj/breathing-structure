@@ -91,7 +91,7 @@ export function useHandTracking(videoRef, canvasRef) {
   }, []);
 
   useEffect(() => {
-    if (phase !== 'active' && phase !== 'calibrating') return;
+    if (phase !== 'active') return;
     activeRef.current = true;
 
     let mounted = true;
