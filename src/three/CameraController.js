@@ -49,10 +49,10 @@ export class CameraController {
     // Openness zoom
     const zoomAdd = smoothOpenness * ZOOM_RANGE;
 
-    // Velocity micro-shake
+    // Velocity micro-shake — sin-based to avoid random jitter
     const shakeMag = Math.min(smoothVelocity * 0.012, 0.04);
-    const shakeX   = (Math.random() - 0.5) * shakeMag;
-    const shakeY   = (Math.random() - 0.5) * shakeMag;
+    const shakeX   = Math.sin(t * 83.7) * shakeMag * 0.5;
+    const shakeY   = Math.sin(t * 61.3 + 1.2) * shakeMag * 0.5;
 
     // POINTING: camera drifts toward pointed direction
     if (gesture === 'POINTING' && handPresent) {

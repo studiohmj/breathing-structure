@@ -97,7 +97,7 @@ export default function LandingScreen({ onEnter }) {
           letterSpacing: '0.02em', color: 'rgba(255,255,255,0.80)',
           lineHeight: 1.65, marginBottom: 14,
         }}>
-          손의 움직임이 만들어내는 살아있는 구조체
+          손의 움직임으로 숨쉬는 구조체
         </motion.div>
 
         {/* Description */}
@@ -106,9 +106,8 @@ export default function LandingScreen({ onEnter }) {
           color: 'rgba(255,255,255,0.62)', lineHeight: 1.9,
           marginBottom: 52,
         }}>
-          WebGL과 실시간 손 인식을 결합한 인터랙티브 설치 작품.<br />
-          제스처와 마우스 움직임으로 3D 구조체를 직접 조작하며<br />
-          살아있는 유기체 같은 반응을 경험한다.
+          WebGL · MediaPipe 기반의 실시간 인터랙티브 설치.<br />
+          제스처와 마우스로 3D 구조체의 형태와 리듬을 조율한다.
         </motion.div>
 
         {/* Divider */}
@@ -146,7 +145,7 @@ export default function LandingScreen({ onEnter }) {
               transition: 'border-color 0.22s, color 0.22s, background 0.22s',
             }}
           >
-            Enter Experience →
+            Enter →
           </motion.button>
         </motion.div>
 

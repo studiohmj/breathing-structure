@@ -34,14 +34,13 @@ const HAND_GUIDE = [
 ];
 
 const MOUSE_GUIDE = [
-  { gesture: 'Move',           desc: 'Structure parallax' },
-  { gesture: 'Scroll',         desc: 'Openness control' },
+  { gesture: 'Move',           desc: 'Structure follows cursor' },
+  { gesture: 'Scroll',         desc: 'Expand / compress' },
   { gesture: 'Click',          desc: 'Toggle open / close' },
   { gesture: 'Hold + Release', desc: 'Charge → burst' },
   { gesture: 'Right Click',    desc: 'Shockwave' },
   { gesture: 'Double Click',   desc: 'Cycle palette' },
-  { gesture: 'Space',          desc: 'Max energy burst' },
-  { gesture: '1 / 2 / 3 / 4', desc: 'Simulate gestures' },
+  { gesture: 'Space',          desc: 'Energy burst' },
 ];
 
 function Dot({ active }) {
@@ -228,14 +227,14 @@ export function CursorLightToggle() {
   if (cameraAllowed) return null;
 
   return (
+    <div style={{ position: 'fixed', top: M, left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 2.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: 'fixed', top: M, left: '50%', transform: 'translateX(-50%)',
         display: 'flex', alignItems: 'center', gap: 12,
-        fontFamily: FONT, zIndex: 100,
+        fontFamily: FONT,
       }}
     >
       <motion.span
@@ -271,6 +270,7 @@ export function CursorLightToggle() {
         />
       </motion.button>
     </motion.div>
+    </div>
   );
 }
 
@@ -349,6 +349,10 @@ export function FeatureGuide({ visible, onClose }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <KeyBadge label="G" />
             <span style={{ ...T.micro, color: 'rgba(255,255,255,0.68)' }}>Toggle cursor light</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 9 }}>
+            <KeyBadge label="1–4" />
+            <span style={{ ...T.micro, color: 'rgba(255,255,255,0.68)' }}>Simulate gestures</span>
           </div>
 
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
