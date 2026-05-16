@@ -132,7 +132,7 @@ function buildEnvironment(scene) {
   fillLight.position.set(0, -2, 1);
   scene.add(fillLight);
 
-  const gazeLight = new THREE.PointLight(0x2255aa, 0.60, 5.0);
+  const gazeLight = new THREE.PointLight(0x2255aa, 0.60, 3.2);
   gazeLight.position.set(3, 2, 3);
   scene.add(gazeLight);
 
@@ -289,7 +289,7 @@ export default function Scene() {
 
     const bw = Math.round(el.offsetWidth / 2);
     const bh = Math.round(el.offsetHeight / 2);
-    const bloom = new UnrealBloomPass(new THREE.Vector2(bw, bh), 0.48, 0.42, 0.78);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(bw, bh), 0.44, 0.38, 0.88);
     composer.addPass(bloom);
 
     const chromaPass = new ShaderPass(ChromaShader);
@@ -520,7 +520,7 @@ export default function Scene() {
       env.gazeLight.position.x += (glx - env.gazeLight.position.x) * Math.min(dt * 1.8, 1);
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
       if (s.cursorLight) {
-        env.gazeLight.intensity = 0.28 + bwVal * 0.14 + s.energyLevel * 0.22;
+        env.gazeLight.intensity = 0.16 + bwVal * 0.08 + s.energyLevel * 0.12;
       } else {
         env.gazeLight.intensity += (0 - env.gazeLight.intensity) * Math.min(dt * 4, 1);
       }
@@ -545,9 +545,9 @@ export default function Scene() {
 
       // Post-processing — bloom capped to prevent black-screen overdrive
       const blastBoost = blastAge < 0.6 ? (0.6 - blastAge) * 0.6 : 0;
-      bloom.strength = Math.min(0.80,
-        0.35 + bwVal * 0.12 + s.energyLevel * 0.28 + s.smoothOpenness * 0.08
-        + shakeAmtRef.current * 0.08 + blastBoost * 0.3
+      bloom.strength = Math.min(0.68,
+        0.30 + bwVal * 0.10 + s.energyLevel * 0.22 + s.smoothOpenness * 0.06
+        + shakeAmtRef.current * 0.06 + blastBoost * 0.25
       );
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
       chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2, 0.5);
