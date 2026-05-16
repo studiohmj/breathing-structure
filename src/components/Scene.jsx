@@ -234,7 +234,6 @@ export default function Scene() {
   const forceGestureRef = useRef({ gesture: null, until: 0 });
   const wasBurstRef     = useRef(false);
   const blastTriggerRef  = useRef(0);
-  const gazeLightOnRef   = useRef(true);
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -375,7 +374,8 @@ export default function Scene() {
       if (storeRef.current.phase !== 'active') return;
       // G: toggle gaze/cursor light (works in both mouse and camera modes)
       if (e.key === 'g' || e.key === 'G') {
-        gazeLightOnRef.current = !gazeLightOnRef.current;
+        const st = useStore.getState();
+        st.setCursorLight(!st.cursorLight);
         return;
       }
       if (storeRef.current.cameraAllowed) return;
@@ -446,8 +446,8 @@ export default function Scene() {
           : scrollOpenRef.current;
 
         useStore.getState().updateHand({
-          handPresent: true,
-          gesture,
+          handPresent: s.cursorLight,
+          gesture:     s.cursorLight ? gesture : 'NONE',
           handOpenness: openness,
           handPosition: pos,
           handVelocity: 0,
@@ -517,7 +517,7 @@ export default function Scene() {
       const gly = -(mx.y - 0.5) * 2.0;
       env.gazeLight.position.x += (glx - env.gazeLight.position.x) * Math.min(dt * 1.8, 1);
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
-      if (gazeLightOnRef.current) {
+      if (s.cursorLight) {
         env.gazeLight.intensity = 0.28 + bwVal * 0.14 + s.energyLevel * 0.22;
       } else {
         env.gazeLight.intensity += (0 - env.gazeLight.intensity) * Math.min(dt * 4, 1);
@@ -551,30 +551,35 @@ export default function Scene() {
       chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2, 0.5);
       grainPass.uniforms.uTime.value = now * 0.001;
 
-      // Mouse trail
-      _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
-      raycaster.setFromCamera(_ndcVec, camera);
-      if (raycaster.ray.intersectPlane(worldPlane, _trailPt)) {
-        const end = Math.min(trailCount, TRAIL_N - 1);
-        for (let i = end; i > 0; i--) trailHist[i].copy(trailHist[i - 1]);
-        trailHist[0].copy(_trailPt);
-        trailCount = Math.min(trailCount + 1, TRAIL_N);
+      // Mouse trail — only when cursor light is on
+      if (s.cursorLight) {
+        _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
+        raycaster.setFromCamera(_ndcVec, camera);
+        if (raycaster.ray.intersectPlane(worldPlane, _trailPt)) {
+          const end = Math.min(trailCount, TRAIL_N - 1);
+          for (let i = end; i > 0; i--) trailHist[i].copy(trailHist[i - 1]);
+          trailHist[0].copy(_trailPt);
+          trailCount = Math.min(trailCount + 1, TRAIL_N);
 
-        for (let i = 0; i < trailCount; i++) {
-          trail.posAttr.setXYZ(i, trailHist[i].x, trailHist[i].y, trailHist[i].z);
-          trail.ageAttr.setX(i, trailCount > 1 ? i / (trailCount - 1) : 0);
+          for (let i = 0; i < trailCount; i++) {
+            trail.posAttr.setXYZ(i, trailHist[i].x, trailHist[i].y, trailHist[i].z);
+            trail.ageAttr.setX(i, trailCount > 1 ? i / (trailCount - 1) : 0);
+          }
+          trail.posAttr.needsUpdate = true;
+          trail.ageAttr.needsUpdate = true;
+          trail.geo.setDrawRange(0, trailCount);
+          trail.mat.uniforms.uPalette.value = paletteCurrent;
         }
-        trail.posAttr.needsUpdate = true;
-        trail.ageAttr.needsUpdate = true;
-        trail.geo.setDrawRange(0, trailCount);
-        trail.mat.uniforms.uPalette.value = paletteCurrent;
+      } else {
+        trail.geo.setDrawRange(0, 0);
+        trailCount = 0;
       }
 
       // Energy beam
       beamMat.uniforms.uTime.value    = now * 0.001;
       beamMat.uniforms.uPalette.value = paletteCurrent;
 
-      if (s.gesture === 'POINTING' && s.handPresent) {
+      if (s.cursorLight && s.gesture === 'POINTING' && s.handPresent) {
         _ndcVec.set(s.smoothPosition.x * 2 - 1, 1 - s.smoothPosition.y * 2);
         raycaster.setFromCamera(_ndcVec, camera);
 

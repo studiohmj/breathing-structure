@@ -158,6 +158,8 @@ export function StatusBar() {
   const gesture        = useStore((s) => s.gesture);
   const cameraAllowed  = useStore((s) => s.cameraAllowed);
   const smoothOpenness = useStore((s) => s.smoothOpenness);
+  const cursorLight    = useStore((s) => s.cursorLight);
+  const setCursorLight = useStore((s) => s.setCursorLight);
   const label = GESTURE_LABELS[gesture] ?? '';
 
   return (
@@ -213,6 +215,33 @@ export function StatusBar() {
           {cameraAllowed ? 'Hand Tracking' : 'Mouse Mode'}
         </span>
       </div>
+
+      {!cameraAllowed && (
+        <motion.button
+          onClick={() => setCursorLight(!cursorLight)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'none', border: 'none', padding: 0,
+            cursor: 'none', marginTop: 10,
+          }}
+          whileHover={{ opacity: 0.75 }}
+        >
+          <motion.span
+            animate={{ color: cursorLight ? 'rgba(48,148,255,1)' : 'rgba(255,255,255,0.30)' }}
+            transition={{ duration: 0.3 }}
+            style={{ fontSize: 7, lineHeight: 1 }}
+          >
+            {cursorLight ? '●' : '○'}
+          </motion.span>
+          <motion.span
+            animate={{ color: cursorLight ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)' }}
+            transition={{ duration: 0.3 }}
+            style={{ ...T.caption, fontWeight: 600, textTransform: 'uppercase' }}
+          >
+            Cursor Light
+          </motion.span>
+        </motion.button>
+      )}
     </motion.div>
   );
 }

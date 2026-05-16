@@ -26,10 +26,14 @@ export const useStore = create((set) => ({
   // Visual palette: 0=Cold Blue, 1=Violet, 2=Ember, 3=Void
   paletteIdx: 0,
 
+  // Cursor light interaction toggle
+  cursorLight: true,
+
   setPhase: (phase) => set({ phase }),
   setCameraAllowed: (v) => set({ cameraAllowed: v }),
   setCameraError: (e) => set({ cameraError: e }),
   setPaletteIdx: (v) => set({ paletteIdx: ((v % 4) + 4) % 4 }),
+  setCursorLight: (v) => set({ cursorLight: v }),
 
   updateHand: (data) => set((s) => {
     const dx = data.handPosition.x - s.smoothPosition.x;
