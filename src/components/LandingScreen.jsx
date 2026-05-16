@@ -172,7 +172,7 @@ export default function LandingScreen({ onEnter }) {
             letterSpacing: '0.14em',
             color: 'rgba(255,255,255,0.44)',
             lineHeight: 1.5,
-            marginBottom: 48,
+            marginBottom: 28,
             fontFamily: FONT,
           }}
         >
@@ -193,7 +193,7 @@ export default function LandingScreen({ onEnter }) {
             style={{
               width: '100%', height: 1,
               background: 'rgba(255,255,255,0.08)',
-              marginBottom: 22,
+              marginBottom: 28,
               transformOrigin: 'center',
             }}
           />

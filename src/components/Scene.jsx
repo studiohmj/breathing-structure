@@ -313,12 +313,15 @@ export default function Scene() {
       };
     };
 
-    // Click: toggle openness — skip if this mouseup was a burst release
+    // Click: ripple pulse — 2 small rings + brief openness spike then return
     const handleClick = () => {
       if (storeRef.current.phase !== 'active') return;
       if (wasBurstRef.current) { wasBurstRef.current = false; return; }
       if (!storeRef.current.cameraAllowed) {
-        scrollOpenRef.current = scrollOpenRef.current > 0.5 ? 0.08 : 0.92;
+        burstTriggerRef.current = performance.now();
+        const prev = scrollOpenRef.current;
+        scrollOpenRef.current = Math.min(1.0, prev + 0.40);
+        setTimeout(() => { scrollOpenRef.current = prev; }, 420);
       }
     };
 
@@ -328,7 +331,7 @@ export default function Scene() {
       e.preventDefault();
       if (!storeRef.current.cameraAllowed) {
         scrollOpenRef.current = Math.max(0, Math.min(1,
-          scrollOpenRef.current - e.deltaY * 0.0014
+          scrollOpenRef.current - e.deltaY * 0.0032
         ));
       }
     };

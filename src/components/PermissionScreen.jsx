@@ -116,7 +116,7 @@ export default function PermissionScreen({ onAllow, onSkip }) {
           style={{
             fontSize: 11, fontWeight: 400,
             letterSpacing: '0.03em',
-            color: 'rgba(255,255,255,0.28)',
+            color: 'rgba(255,255,255,0.52)',
             textAlign: 'center',
             lineHeight: 1.65,
             marginTop: 14, marginBottom: 32,
@@ -178,7 +178,7 @@ export default function PermissionScreen({ onAllow, onSkip }) {
                   padding: '9px 0',
                   border: 'none',
                   background: 'transparent',
-                  color: 'rgba(255,255,255,0.24)',
+                  color: 'rgba(255,255,255,0.58)',
                   fontSize: 9, fontWeight: 500,
                   letterSpacing: '0.16em',
                   fontFamily: FONT,
@@ -187,7 +187,7 @@ export default function PermissionScreen({ onAllow, onSkip }) {
                   transition: 'opacity 0.2s',
                 }}
               >
-                Continue with mouse
+                Continue with mouse · keyboard
               </motion.button>
             </motion.div>
           )}
