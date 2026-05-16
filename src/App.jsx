@@ -4,7 +4,6 @@ import { useStore } from './store/store.js';
 import { useHandTracking } from './hooks/useHandTracking.js';
 import Scene from './components/Scene.jsx';
 import LandingScreen from './components/LandingScreen.jsx';
-import LoadingScreen from './components/LoadingScreen.jsx';
 import PermissionScreen from './components/PermissionScreen.jsx';
 import { Branding, StatusBar, CameraPreview, TopRight, FeatureGuide } from './components/UI.jsx';
 
@@ -63,8 +62,7 @@ export default function App() {
     }
   }, [appPhase]);
 
-  const handleLandingEnter = () => setAppPhase('loading');
-  const handleLoadComplete = () => setAppPhase('permission');
+  const handleLandingEnter = () => setAppPhase('permission');
 
   const handleCameraAllow = (stream) => {
     setCameraStream(stream);
@@ -86,9 +84,6 @@ export default function App() {
       <AnimatePresence mode="wait">
         {appPhase === 'landing' && (
           <LandingScreen key="landing" onEnter={handleLandingEnter} />
-        )}
-        {appPhase === 'loading' && (
-          <LoadingScreen key="loading" onComplete={handleLoadComplete} />
         )}
         {appPhase === 'permission' && (
           <PermissionScreen
