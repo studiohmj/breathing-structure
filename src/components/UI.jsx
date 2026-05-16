@@ -158,8 +158,6 @@ export function StatusBar() {
   const gesture        = useStore((s) => s.gesture);
   const cameraAllowed  = useStore((s) => s.cameraAllowed);
   const smoothOpenness = useStore((s) => s.smoothOpenness);
-  const cursorLight    = useStore((s) => s.cursorLight);
-  const setCursorLight = useStore((s) => s.setCursorLight);
   const label = GESTURE_LABELS[gesture] ?? '';
 
   return (
@@ -216,32 +214,62 @@ export function StatusBar() {
         </span>
       </div>
 
-      {!cameraAllowed && (
-        <motion.button
-          onClick={() => setCursorLight(!cursorLight)}
+    </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   CURSOR LIGHT TOGGLE — top center
+   ═════════════════════════════════════════════ */
+export function CursorLightToggle() {
+  const cursorLight    = useStore((s) => s.cursorLight);
+  const setCursorLight = useStore((s) => s.setCursorLight);
+  const cameraAllowed  = useStore((s) => s.cameraAllowed);
+  if (cameraAllowed) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 2.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'fixed', top: M, left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', alignItems: 'center', gap: 12,
+        fontFamily: FONT, zIndex: 100,
+      }}
+    >
+      <motion.span
+        animate={{ color: cursorLight ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.30)' }}
+        transition={{ duration: 0.3 }}
+        style={{ ...T.caption, fontWeight: 600, textTransform: 'uppercase' }}
+      >
+        Cursor Light
+      </motion.span>
+
+      {/* Toggle track */}
+      <motion.button
+        onClick={() => setCursorLight(!cursorLight)}
+        animate={{ backgroundColor: cursorLight ? 'rgba(48,148,255,0.85)' : 'rgba(255,255,255,0.15)' }}
+        transition={{ duration: 0.3 }}
+        style={{
+          position: 'relative',
+          width: 44, height: 24, borderRadius: 12,
+          border: 'none', padding: 0, cursor: 'none',
+          flexShrink: 0,
+        }}
+      >
+        {/* Toggle thumb */}
+        <motion.span
+          animate={{ x: cursorLight ? 22 : 2 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
           style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'none', border: 'none', padding: 0,
-            cursor: 'none', marginTop: 10,
+            position: 'absolute', top: 2,
+            width: 20, height: 20, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.95)',
+            display: 'block',
           }}
-          whileHover={{ opacity: 0.75 }}
-        >
-          <motion.span
-            animate={{ color: cursorLight ? 'rgba(48,148,255,1)' : 'rgba(255,255,255,0.30)' }}
-            transition={{ duration: 0.3 }}
-            style={{ fontSize: 7, lineHeight: 1 }}
-          >
-            {cursorLight ? '●' : '○'}
-          </motion.span>
-          <motion.span
-            animate={{ color: cursorLight ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)' }}
-            transition={{ duration: 0.3 }}
-            style={{ ...T.caption, fontWeight: 600, textTransform: 'uppercase' }}
-          >
-            Cursor Light
-          </motion.span>
-        </motion.button>
-      )}
+        />
+      </motion.button>
     </motion.div>
   );
 }

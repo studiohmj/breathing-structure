@@ -5,7 +5,7 @@ import { useHandTracking } from './hooks/useHandTracking.js';
 import Scene from './components/Scene.jsx';
 import LandingScreen from './components/LandingScreen.jsx';
 import PermissionScreen from './components/PermissionScreen.jsx';
-import { Branding, StatusBar, CameraPreview, TopRight, FeatureGuide } from './components/UI.jsx';
+import { Branding, StatusBar, CameraPreview, TopRight, FeatureGuide, CursorLightToggle } from './components/UI.jsx';
 
 export default function App() {
   const [appPhase, setAppPhase] = useState('landing');
@@ -99,6 +99,7 @@ export default function App() {
         <>
           <Branding />
           <TopRight onHelp={() => setShowGuide((v) => !v)} />
+          <CursorLightToggle />
           <StatusBar />
           <FeatureGuide visible={showGuide} onClose={() => setShowGuide(false)} />
           <CameraPreview
