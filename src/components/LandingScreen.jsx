@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 
 const FONT    = "'Pretendard Variable', 'Pretendard', system-ui, sans-serif";
 const DISPLAY = "'Bebas Neue', system-ui, sans-serif";
+const GLAMOUR = "'Bodoni Moda', serif";
 
 function SplitText({ text, startDelay, charDelay = 0.040 }) {
   return (
@@ -147,15 +148,16 @@ export default function LandingScreen({ onEnter }) {
           </div>
 
           <div style={{
-            fontFamily: DISPLAY,
+            fontFamily: GLAMOUR,
             fontSize: titleSize,
             fontWeight: 400,
-            letterSpacing: '0.09em',
-            paddingLeft: '0.09em',
+            letterSpacing: '0.16em',
+            paddingLeft: '0.16em',
             color: 'rgba(255,255,255,0.96)',
-            lineHeight: 0.95,
+            lineHeight: 1.0,
             overflow: 'hidden',
-            marginTop: 6,
+            marginTop: 2,
+            fontVariationSettings: "'opsz' 96",
           }}>
             <SplitText text="STRUCTURE" startDelay={0.52} />
           </div>

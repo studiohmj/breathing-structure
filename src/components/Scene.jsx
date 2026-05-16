@@ -136,7 +136,7 @@ function buildEnvironment(scene) {
   fillLight.position.set(0, -2, 1);
   scene.add(fillLight);
 
-  const gazeLight = new THREE.PointLight(0x2255aa, 0.60, 3.2);
+  const gazeLight = new THREE.PointLight(0x2255aa, 0.60, 1.1);
   gazeLight.position.set(3, 2, 3);
   scene.add(gazeLight);
 
