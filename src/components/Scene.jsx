@@ -233,7 +233,8 @@ export default function Scene() {
   const shakeAmtRef     = useRef(0);
   const forceGestureRef = useRef({ gesture: null, until: 0 });
   const wasBurstRef     = useRef(false);
-  const blastTriggerRef = useRef(0);
+  const blastTriggerRef  = useRef(0);
+  const gazeLightOnRef   = useRef(true);
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -372,6 +373,11 @@ export default function Scene() {
     // Keyboard gesture simulation + Space burst
     const handleKeyDown = (e) => {
       if (storeRef.current.phase !== 'active') return;
+      // G: toggle gaze/cursor light (works in both mouse and camera modes)
+      if (e.key === 'g' || e.key === 'G') {
+        gazeLightOnRef.current = !gazeLightOnRef.current;
+        return;
+      }
       if (storeRef.current.cameraAllowed) return;
       const gMap = { '1': 'OPEN_PALM', '2': 'CLOSED_FIST', '3': 'POINTING', '4': 'ROCK' };
       if (gMap[e.key]) {
@@ -505,13 +511,17 @@ export default function Scene() {
         hb0[2] + (hb1[2]-hb0[2])*pf + s.smoothOpenness * 0.18,
       );
 
-      // Gaze light tracks cursor (reduced intensity + range)
+      // Gaze light tracks cursor — toggleable with G key
       const mx = mousePosRef.current;
-      const glx = (mx.x - 0.5) * 3.5;
-      const gly = -(mx.y - 0.5) * 2.4;
+      const glx = (mx.x - 0.5) * 3.0;
+      const gly = -(mx.y - 0.5) * 2.0;
       env.gazeLight.position.x += (glx - env.gazeLight.position.x) * Math.min(dt * 1.8, 1);
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
-      env.gazeLight.intensity   = 0.35 + bwVal * 0.20 + s.energyLevel * 0.35;
+      if (gazeLightOnRef.current) {
+        env.gazeLight.intensity = 0.28 + bwVal * 0.14 + s.energyLevel * 0.22;
+      } else {
+        env.gazeLight.intensity += (0 - env.gazeLight.intensity) * Math.min(dt * 4, 1);
+      }
 
       // Blast rings
       const blastAge = (now - blastTriggerRef.current) / 1000;
@@ -531,10 +541,12 @@ export default function Scene() {
         }
       }
 
-      // Post-processing
-      const blastBoost = blastAge < 0.4 ? (0.4 - blastAge) * 3.5 : 0;
-      bloom.strength = 0.38 + bwVal * 0.14 + s.energyLevel * 0.38 + s.smoothOpenness * 0.1
-        + shakeAmtRef.current * 0.35 + blastBoost;
+      // Post-processing — bloom capped to prevent black-screen overdrive
+      const blastBoost = blastAge < 0.4 ? (0.4 - blastAge) * 1.5 : 0;
+      bloom.strength = Math.min(0.95,
+        0.35 + bwVal * 0.12 + s.energyLevel * 0.30 + s.smoothOpenness * 0.08
+        + shakeAmtRef.current * 0.15 + blastBoost * 0.6
+      );
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
       chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.35 + shakeAmtRef.current * 0.4 + blastBoost * 0.3, 1.0);
       grainPass.uniforms.uTime.value = now * 0.001;

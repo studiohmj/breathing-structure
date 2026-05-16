@@ -10,6 +10,12 @@ const T = {
 };
 const FONT = "'Pretendard Variable', 'Pretendard', system-ui, sans-serif";
 
+/* shared grid margin — all HUD elements use this */
+const M = 36;
+/* camera preview dimensions — used to push guide above it */
+const CAM_H = 96;
+const CAM_GAP = 12;
+
 const PALETTE_NAMES = ['Cold', 'Violet', 'Ember', 'Void'];
 
 const GESTURE_LABELS = {
@@ -73,7 +79,7 @@ function KeyBadge({ label }) {
 }
 
 /* ═══════════════════════════════════════════════
-   BRANDING — top-left
+   BRANDING — top-left  (anchored to grid M)
    ═════════════════════════════════════════════ */
 export function Branding() {
   return (
@@ -81,7 +87,7 @@ export function Branding() {
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 2.0, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      style={{ position: 'fixed', top: 32, left: 36, fontFamily: FONT }}
+      style={{ position: 'fixed', top: M, left: M, fontFamily: FONT }}
     >
       <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase' }}>BREATHING</div>
       <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginTop: 2 }}>STRUCTURE</div>
@@ -104,12 +110,12 @@ export function TopRight({ onHelp }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 2.4, duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: 'fixed', top: 32, right: 36, fontFamily: FONT,
+        position: 'fixed', top: M, right: M, fontFamily: FONT,
         display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5,
       }}
     >
-      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.42)', textTransform: 'uppercase' }}>WebGL · MediaPipe</div>
-      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.30)', letterSpacing: '0.08em' }}>◉ Real-time</div>
+      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase' }}>WebGL · MediaPipe</div>
+      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.08em' }}>◉ Real-time</div>
 
       <Divider w={20} />
 
@@ -145,7 +151,7 @@ export function TopRight({ onHelp }) {
 }
 
 /* ═══════════════════════════════════════════════
-   STATUS BAR — bottom-left
+   STATUS BAR — bottom-left  (anchored to grid M)
    ═════════════════════════════════════════════ */
 export function StatusBar() {
   const handPresent    = useStore((s) => s.handPresent);
@@ -160,7 +166,7 @@ export function StatusBar() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 2.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: 'fixed', bottom: 32, left: 36, fontFamily: FONT,
+        position: 'fixed', bottom: M, left: M, fontFamily: FONT,
         display: 'flex', flexDirection: 'column', gap: 0,
       }}
     >
@@ -181,7 +187,7 @@ export function StatusBar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ ...T.value, fontWeight: 300, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', marginBottom: 8 }}
+            style={{ ...T.value, fontWeight: 300, color: 'rgba(255,255,255,0.48)', textTransform: 'uppercase', marginBottom: 8 }}
           >
             — Idle
           </motion.div>
@@ -212,11 +218,14 @@ export function StatusBar() {
 }
 
 /* ═══════════════════════════════════════════════
-   FEATURE GUIDE — slide-in panel bottom-right
+   FEATURE GUIDE — bottom-right
+   Floats above CameraPreview when camera is active
    ═════════════════════════════════════════════ */
 export function FeatureGuide({ visible, onClose }) {
   const cameraAllowed = useStore((s) => s.cameraAllowed);
   const guide = cameraAllowed ? HAND_GUIDE : MOUSE_GUIDE;
+  /* when the camera preview is visible, push guide above it */
+  const bottomOffset = cameraAllowed ? M + CAM_H + CAM_GAP : M;
 
   return (
     <AnimatePresence>
@@ -228,7 +237,7 @@ export function FeatureGuide({ visible, onClose }) {
           exit={{ opacity: 0, x: 18, transition: { duration: 0.25 } }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            position: 'fixed', bottom: 32, right: 36,
+            position: 'fixed', bottom: bottomOffset, right: M,
             width: 240,
             padding: '20px 20px 16px',
             border: '1px solid rgba(48,148,255,0.18)',
@@ -257,7 +266,6 @@ export function FeatureGuide({ visible, onClose }) {
             </motion.button>
           </div>
 
-          {/* Interaction items */}
           {guide.map((item, i) => (
             <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 13 }}>
               <span style={{ fontSize: 8, color: 'rgba(48,148,255,0.80)', marginTop: 3, flexShrink: 0 }}>✦</span>
@@ -270,7 +278,6 @@ export function FeatureGuide({ visible, onClose }) {
 
           <Divider w="100%" />
 
-          {/* Keyboard */}
           <div style={{ ...T.caption, fontWeight: 700, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', marginBottom: 12 }}>
             Keyboard
           </div>
@@ -278,12 +285,15 @@ export function FeatureGuide({ visible, onClose }) {
             <KeyBadge label="V" />
             <span style={{ ...T.micro, color: 'rgba(255,255,255,0.68)' }}>Cycle color palette</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
             <KeyBadge label="?" />
             <span style={{ ...T.micro, color: 'rgba(255,255,255,0.68)' }}>Toggle this guide</span>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <KeyBadge label="G" />
+            <span style={{ ...T.micro, color: 'rgba(255,255,255,0.68)' }}>Toggle cursor light</span>
+          </div>
 
-          {/* Palettes */}
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
             <div style={{ ...T.caption, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
               Palettes
@@ -301,7 +311,7 @@ export function FeatureGuide({ visible, onClose }) {
 }
 
 /* ═══════════════════════════════════════════════
-   CAMERA PREVIEW — bottom-right
+   CAMERA PREVIEW — bottom-right  (anchored to M)
    ═════════════════════════════════════════════ */
 export function CameraPreview({ videoRef, skelCanvasRef, visible }) {
   return (
@@ -313,8 +323,8 @@ export function CameraPreview({ videoRef, skelCanvasRef, visible }) {
           animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
           exit={{ opacity: 0, scale: 0.92, y: 8, transition: { duration: 0.35 } }}
           style={{
-            position: 'fixed', bottom: 32, right: 36,
-            width: 128, height: 96, borderRadius: 6,
+            position: 'fixed', bottom: M, right: M,
+            width: 128, height: CAM_H, borderRadius: 6,
             overflow: 'hidden', border: '1px solid rgba(48,148,255,0.22)',
             background: 'rgba(2,4,8,0.7)', backdropFilter: 'blur(8px)',
             fontFamily: FONT,
