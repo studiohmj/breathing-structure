@@ -97,10 +97,14 @@ const TrailFrag = `
 `;
 
 const PALETTE_ENVS = [
-  { bgHex: 0x020408, heartBase:[0.08,0.22,0.52], gazeHex: 0x2255aa, fogDensity: 0.058 },
-  { bgHex: 0x030208, heartBase:[0.10,0.06,0.42], gazeHex: 0x401890, fogDensity: 0.060 },
-  { bgHex: 0x060202, heartBase:[0.42,0.06,0.12], gazeHex: 0x901828, fogDensity: 0.055 },
-  { bgHex: 0x030303, heartBase:[0.12,0.14,0.16], gazeHex: 0x283038, fogDensity: 0.062 },
+  { bgHex: 0x020408, heartBase:[0.08,0.22,0.52], gazeHex: 0x2255aa, fogDensity: 0.058 }, // 0 Blue
+  { bgHex: 0x030208, heartBase:[0.10,0.06,0.42], gazeHex: 0x401890, fogDensity: 0.060 }, // 1 Violet
+  { bgHex: 0x060202, heartBase:[0.42,0.06,0.12], gazeHex: 0x901828, fogDensity: 0.055 }, // 2 Crimson
+  { bgHex: 0x030303, heartBase:[0.12,0.14,0.16], gazeHex: 0x283038, fogDensity: 0.062 }, // 3 Mono
+  { bgHex: 0x010608, heartBase:[0.04,0.30,0.38], gazeHex: 0x0a6070, fogDensity: 0.056 }, // 4 Teal
+  { bgHex: 0x070500, heartBase:[0.38,0.20,0.02], gazeHex: 0x7a5a10, fogDensity: 0.054 }, // 5 Amber
+  { bgHex: 0x010602, heartBase:[0.05,0.30,0.08], gazeHex: 0x126618, fogDensity: 0.058 }, // 6 Emerald
+  { bgHex: 0x060104, heartBase:[0.40,0.04,0.24], gazeHex: 0x901058, fogDensity: 0.056 }, // 7 Rose
 ];
 
 function buildEnvironment(scene) {
@@ -233,7 +237,9 @@ export default function Scene() {
   const shakeAmtRef     = useRef(0);
   const forceGestureRef = useRef({ gesture: null, until: 0 });
   const wasBurstRef     = useRef(false);
-  const blastTriggerRef  = useRef(0);
+  const blastTriggerRef  = useRef(0);  // Space: 4 large rings
+  const burstTriggerRef  = useRef(0);  // Hold burst: 2 small rings
+  const shockTriggerRef  = useRef(0);  // Right-click: chroma spike + Z push
 
   useEffect(() => {
     const unsub = useStore.subscribe((s) => { storeRef.current = s; });
@@ -327,13 +333,15 @@ export default function Scene() {
       }
     };
 
-    // Right-click: shockwave
+    // Right-click: inversion pulse — structure contracts + chroma spike, no rings
     const handleContextMenu = (e) => {
       e.preventDefault();
       if (storeRef.current.phase !== 'active') return;
       if (!storeRef.current.cameraAllowed) {
-        shakeAmtRef.current = 0.55;
-        forceGestureRef.current = { gesture: 'ROCK', until: performance.now() + 900 };
+        shockTriggerRef.current = performance.now();
+        const prev = scrollOpenRef.current;
+        scrollOpenRef.current = 0.02;
+        setTimeout(() => { scrollOpenRef.current = prev; }, 320);
       }
     };
 
@@ -359,9 +367,10 @@ export default function Scene() {
       if (e.button !== 0 || !isHoldingRef.current || storeRef.current.cameraAllowed) return;
       const held = (performance.now() - holdStartRef.current) / 1000;
       if (held >= 0.5) {
-        shakeAmtRef.current = Math.min(held * 0.45, 0.85);
+        shakeAmtRef.current = Math.min(held * 0.35, 0.65);
+        burstTriggerRef.current = performance.now();
         forceGestureRef.current = { gesture: 'OPEN_PALM', until: performance.now() + 900 };
-        wasBurstRef.current = true; // suppress the following click event
+        wasBurstRef.current = true;
       }
       isHoldingRef.current = false;
     };
@@ -460,11 +469,11 @@ export default function Scene() {
       const bwVal = Math.sin(breathPhase * Math.PI * 2) * 0.5 + 0.5;
 
       // Palette interpolation
-      const paletteTarget = s.paletteIdx ?? 0;
+      const paletteTarget = (s.paletteIdx ?? 0) % 8;
       paletteCurrent += (paletteTarget - paletteCurrent) * Math.min(dt * 1.8, 1);
 
-      const pi0 = Math.max(0, Math.min(2, Math.floor(paletteCurrent)));
-      const pi1 = pi0 + 1;
+      const pi0 = Math.max(0, Math.min(6, Math.floor(paletteCurrent)));
+      const pi1 = Math.min(7, pi0 + 1);
       const pf  = paletteCurrent - pi0;
       const pe0 = PALETTE_ENVS[pi0], pe1 = PALETTE_ENVS[pi1];
 
@@ -525,32 +534,54 @@ export default function Scene() {
         env.gazeLight.intensity += (0 - env.gazeLight.intensity) * Math.min(dt * 4, 1);
       }
 
-      // Blast rings
+      // Blast rings — Space: 4 large (slow), Hold burst: 2 small (fast)
       const blastAge = (now - blastTriggerRef.current) / 1000;
-      const RING_PALETTE = [0x3094ff, 0x6622ee, 0xe03020, 0xa0b8d0];
-      _ringCol.setHex(RING_PALETTE[Math.round(paletteCurrent) % 4]);
+      const burstAge = (now - burstTriggerRef.current) / 1000;
+      const RING_PALETTE = [0x3094ff, 0x6622ee, 0xe03020, 0xa0b8d0, 0x10b8c8, 0xe8a020, 0x20c840, 0xe02880];
+      _ringCol.setHex(RING_PALETTE[Math.round(paletteCurrent) % 8]);
       for (let ri = 0; ri < blastRings.length; ri++) {
         const { mesh, mat: rMat } = blastRings[ri];
-        const age = blastAge - ri * 0.20;
-        if (age > 0 && age < 1.8) {
-          const p = age / 1.8;
+        // Space: all 4 rings, large & slow
+        const spAge = blastAge - ri * 0.22;
+        // Hold burst: only rings 0-1, smaller & faster
+        const hbAge = ri < 2 ? burstAge - ri * 0.28 : -1;
+
+        let active = false;
+        if (spAge > 0 && spAge < 1.8) {
+          const p = spAge / 1.8;
           mesh.scale.setScalar(0.4 + p * 5.5);
-          rMat.opacity = Math.pow(1 - p, 1.5) * 0.60;
+          rMat.opacity = Math.pow(1 - p, 1.5) * 0.58;
           rMat.color.copy(_ringCol);
-          mesh.visible = true;
-        } else {
-          mesh.visible = false;
+          active = true;
+        } else if (hbAge > 0 && hbAge < 1.1) {
+          const p = hbAge / 1.1;
+          mesh.scale.setScalar(0.3 + p * 2.8);
+          rMat.opacity = Math.pow(1 - p, 2.0) * 0.42;
+          rMat.color.copy(_ringCol);
+          active = true;
         }
+        mesh.visible = active;
+      }
+
+      // Shock (right-click): chromatic aberration spike + camera Z recoil
+      const shockAge = (now - shockTriggerRef.current) / 1000;
+      const shockChroma = shockAge < 0.55 ? Math.pow(1 - shockAge / 0.55, 2.2) * 2.2 : 0;
+      const shockBloom  = shockAge < 0.28 ? Math.pow(1 - shockAge / 0.28, 3.0) * 0.22 : 0;
+      if (shockAge < 0.30) {
+        camera.position.z += Math.pow(1 - shockAge / 0.30, 2.0) * 0.42;
       }
 
       // Post-processing — bloom capped to prevent black-screen overdrive
       const blastBoost = blastAge < 0.6 ? (0.6 - blastAge) * 0.6 : 0;
       bloom.strength = Math.min(0.68,
         0.30 + bwVal * 0.10 + s.energyLevel * 0.22 + s.smoothOpenness * 0.06
-        + shakeAmtRef.current * 0.06 + blastBoost * 0.25
+        + shakeAmtRef.current * 0.06 + blastBoost * 0.25 + shockBloom
       );
       bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
-      chromaPass.uniforms.uStrength.value = Math.min(s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2, 0.5);
+      chromaPass.uniforms.uStrength.value = Math.min(
+        s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2 + shockChroma,
+        2.5
+      );
       grainPass.uniforms.uTime.value = now * 0.001;
 
       // Mouse trail — only when cursor light is on
