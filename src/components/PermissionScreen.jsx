@@ -91,36 +91,21 @@ export default function PermissionScreen({ onAllow, onSkip }) {
       >
         <CamIcon />
 
-        {/* Category — L2 */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          style={{
-            fontSize: 8, fontWeight: 500,
-            letterSpacing: '0.26em',
-            color: 'rgba(255,255,255,0.22)',
-            textTransform: 'uppercase',
-            marginTop: 26, marginBottom: 12,
-          }}
-        >
-          Interaction Layer
-        </motion.div>
-
         {/* Headline — L1 */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.62, duration: 0.6 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
           style={{
             fontSize: 20, fontWeight: 300,
             letterSpacing: '0.02em',
             color: 'rgba(255,255,255,0.82)',
             textAlign: 'center',
             lineHeight: 1.45,
+            marginTop: 26,
           }}
         >
-          Camera access<br />enables hand tracking
+          카메라로 손을 인식합니다
         </motion.div>
 
         {/* Body — L3 */}
@@ -137,7 +122,7 @@ export default function PermissionScreen({ onAllow, onSkip }) {
             marginTop: 14, marginBottom: 32,
           }}
         >
-          Your webcam is processed locally.<br />No data is transmitted or stored.
+          웹캠 영상은 브라우저 내에서만 처리됩니다.<br />외부로 전송되거나 저장되지 않습니다.
         </motion.div>
 
         {/* Actions */}

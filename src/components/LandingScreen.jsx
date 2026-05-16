@@ -59,23 +59,13 @@ export default function LandingScreen({ onEnter }) {
           textAlign: 'center',
         }}
       >
-        {/* Category label */}
-        <motion.div variants={itemV} style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '0.28em',
-          color: 'rgba(255,255,255,0.48)', textTransform: 'uppercase',
-          marginBottom: 28,
-        }}>
-          Interactive Installation · 2026
-        </motion.div>
-
         {/* Title */}
-        <motion.div variants={itemV} style={{ marginBottom: 32 }}>
+        <motion.div variants={itemV} style={{ marginBottom: 36 }}>
           <div style={{
             fontSize: 'clamp(52px, 9vw, 96px)', fontWeight: 200,
             letterSpacing: '0.40em',
             color: 'rgba(255,255,255,0.94)',
             lineHeight: 1.0, textTransform: 'uppercase',
-            /* cancel trailing letter-spacing so the block looks visually centred */
             paddingLeft: '0.40em',
           }}>
             BREATHING
@@ -94,33 +84,23 @@ export default function LandingScreen({ onEnter }) {
         {/* Tagline */}
         <motion.div variants={itemV} style={{
           fontSize: 'clamp(14px, 1.5vw, 16px)', fontWeight: 300,
-          letterSpacing: '0.02em', color: 'rgba(255,255,255,0.80)',
-          lineHeight: 1.65, marginBottom: 14,
+          letterSpacing: '0.06em', color: 'rgba(255,255,255,0.55)',
+          lineHeight: 1.5, marginBottom: 56,
         }}>
-          손의 움직임으로 숨쉬는 구조체
-        </motion.div>
-
-        {/* Description */}
-        <motion.div variants={itemV} style={{
-          fontSize: 13, fontWeight: 400, letterSpacing: '0.01em',
-          color: 'rgba(255,255,255,0.62)', lineHeight: 1.9,
-          marginBottom: 52,
-        }}>
-          WebGL · MediaPipe 기반의 실시간 인터랙티브 설치.<br />
-          제스처와 마우스로 3D 구조체의 형태와 리듬을 조율한다.
+          숨이 형태가 된다
         </motion.div>
 
         {/* Divider */}
         <motion.div variants={itemV} style={{ width: '100%' }}>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.10)', marginBottom: 28 }} />
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 20 }} />
 
-          {/* Tech stack */}
+          {/* Meta */}
           <div style={{
             fontSize: 10, fontWeight: 500, letterSpacing: '0.22em',
-            color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
             marginBottom: 24,
           }}>
-            WebGL · Three.js · MediaPipe · React
+            Interactive Installation · 2026
           </div>
 
           {/* CTA button — centred */}

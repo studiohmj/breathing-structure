@@ -9,6 +9,7 @@ const T = {
   micro:     { fontSize: 11, fontWeight: 400, letterSpacing: '0.06em', lineHeight: 1.5 },
 };
 const FONT = "'Pretendard Variable', 'Pretendard', system-ui, sans-serif";
+const SHADOW = '0 1px 6px rgba(0,0,0,0.95), 0 0 18px rgba(0,0,0,0.75)';
 
 /* shared grid margin — all HUD elements use this */
 const M = 36;
@@ -88,11 +89,11 @@ export function Branding() {
       transition={{ delay: 2.0, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       style={{ position: 'fixed', top: M, left: M, fontFamily: FONT }}
     >
-      <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase' }}>BREATHING</div>
-      <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginTop: 2 }}>STRUCTURE</div>
+      <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', textShadow: SHADOW }}>BREATHING</div>
+      <div style={{ ...T.displaySm, color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginTop: 2, textShadow: SHADOW }}>STRUCTURE</div>
       <Divider w={48} />
-      <div style={{ ...T.label, color: 'rgba(255,255,255,0.70)', textTransform: 'uppercase' }}>Interactive Installation</div>
-      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', marginTop: 4 }}>2026</div>
+      <div style={{ ...T.label, color: 'rgba(255,255,255,0.70)', textTransform: 'uppercase', textShadow: SHADOW }}>Interactive Installation</div>
+      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', marginTop: 4, textShadow: SHADOW }}>2026</div>
     </motion.div>
   );
 }
@@ -113,8 +114,8 @@ export function TopRight({ onHelp }) {
         display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5,
       }}
     >
-      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase' }}>WebGL · MediaPipe</div>
-      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.08em' }}>◉ Real-time</div>
+      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', textShadow: SHADOW }}>WebGL · MediaPipe</div>
+      <div style={{ ...T.micro, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.08em', textShadow: SHADOW }}>◉ Real-time</div>
 
       <Divider w={20} />
 
@@ -176,7 +177,7 @@ export function StatusBar() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
             exit={{ opacity: 0, y: -4, transition: { duration: 0.2 } }}
-            style={{ ...T.value, fontWeight: 600, color: 'rgba(48,148,255,0.95)', textTransform: 'uppercase', marginBottom: 8 }}
+            style={{ ...T.value, fontWeight: 600, color: 'rgba(48,148,255,0.95)', textTransform: 'uppercase', marginBottom: 8, textShadow: SHADOW }}
           >
             {label}
           </motion.div>
@@ -186,7 +187,7 @@ export function StatusBar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ ...T.value, fontWeight: 300, color: 'rgba(255,255,255,0.48)', textTransform: 'uppercase', marginBottom: 8 }}
+            style={{ ...T.value, fontWeight: 300, color: 'rgba(255,255,255,0.48)', textTransform: 'uppercase', marginBottom: 8, textShadow: SHADOW }}
           >
             — Idle
           </motion.div>
@@ -194,7 +195,7 @@ export function StatusBar() {
       </AnimatePresence>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ ...T.caption, fontWeight: 600, color: 'rgba(255,255,255,0.70)', textTransform: 'uppercase' }}>Openness</div>
+        <div style={{ ...T.caption, fontWeight: 600, color: 'rgba(255,255,255,0.70)', textTransform: 'uppercase', textShadow: SHADOW }}>Openness</div>
         <div style={{ width: 80, height: 2, background: 'rgba(255,255,255,0.15)', borderRadius: 2, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${smoothOpenness * 100}%` }}
@@ -208,7 +209,7 @@ export function StatusBar() {
 
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <Dot active={cameraAllowed && handPresent} />
-        <span style={{ ...T.caption, fontWeight: 600, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase' }}>
+        <span style={{ ...T.caption, fontWeight: 600, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', textShadow: SHADOW }}>
           {cameraAllowed ? 'Hand Tracking' : 'Mouse Mode'}
         </span>
       </div>
@@ -240,7 +241,7 @@ export function CursorLightToggle() {
       <motion.span
         animate={{ color: cursorLight ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.30)' }}
         transition={{ duration: 0.3 }}
-        style={{ ...T.caption, fontWeight: 600, textTransform: 'uppercase' }}
+        style={{ ...T.caption, fontWeight: 600, textTransform: 'uppercase', textShadow: SHADOW }}
       >
         Cursor Light
       </motion.span>
