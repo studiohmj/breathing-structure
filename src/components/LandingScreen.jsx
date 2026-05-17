@@ -62,20 +62,20 @@ export default function LandingScreen({ onEnter }) {
         {/* Title */}
         <motion.div variants={itemV} style={{ marginBottom: 36 }}>
           <div style={{
-            fontSize: 'clamp(52px, 9vw, 96px)', fontWeight: 200,
-            letterSpacing: '0.40em',
-            color: 'rgba(255,255,255,0.94)',
+            fontSize: 'clamp(52px, 9vw, 96px)', fontWeight: 100,
+            letterSpacing: '0.22em',
+            color: 'rgba(255,255,255,0.88)',
             lineHeight: 1.0, textTransform: 'uppercase',
-            paddingLeft: '0.40em',
+            paddingLeft: '0.22em',
           }}>
             BREATHING
           </div>
           <div style={{
-            fontSize: 'clamp(52px, 9vw, 96px)', fontWeight: 200,
-            letterSpacing: '0.40em',
-            color: 'rgba(255,255,255,0.94)',
+            fontSize: 'clamp(52px, 9vw, 96px)', fontWeight: 400,
+            letterSpacing: '0.22em',
+            color: 'rgba(255,255,255,0.96)',
             lineHeight: 1.0, textTransform: 'uppercase',
-            marginTop: 6, paddingLeft: '0.40em',
+            marginTop: 6, paddingLeft: '0.22em',
           }}>
             STRUCTURE
           </div>

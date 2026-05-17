@@ -55,12 +55,20 @@ const BeamFrag = `
     float pulse = 0.5 + 0.5 * sin(vT * 12.0 - uTime * 6.5);
     float edge  = smoothstep(0.0, 0.07, vT) * smoothstep(1.0, 0.93, vT);
     float alpha = uAlpha * pulse * edge * 0.92;
-    float pp = clamp(uPalette, 0.0, 3.0);
+    float pp = clamp(uPalette, 0.0, 7.0);
     vec3 c0 = mix(vec3(0.14,0.50,0.96), vec3(0.76,0.93,1.0), pulse * 0.55);
     vec3 c1 = mix(vec3(0.40,0.14,0.90), vec3(0.82,0.72,1.0), pulse * 0.55);
     vec3 c2 = mix(vec3(0.90,0.16,0.20), vec3(1.00,0.72,0.60), pulse * 0.55);
     vec3 c3 = mix(vec3(0.28,0.32,0.38), vec3(0.82,0.86,0.90), pulse * 0.55);
-    vec3 col = mix(mix(mix(c0,c1,clamp(pp,0.,1.)),c2,clamp(pp-1.,0.,1.)),c3,clamp(pp-2.,0.,1.));
+    vec3 c4 = mix(vec3(0.06,0.55,0.80), vec3(0.60,0.95,1.00), pulse * 0.55);
+    vec3 c5 = mix(vec3(0.80,0.42,0.04), vec3(1.00,0.82,0.50), pulse * 0.55);
+    vec3 c6 = mix(vec3(0.12,0.55,0.18), vec3(0.60,1.00,0.60), pulse * 0.55);
+    vec3 c7 = mix(vec3(0.80,0.08,0.45), vec3(1.00,0.60,0.85), pulse * 0.55);
+    vec3 col = c0;
+    col = mix(col,c1,clamp(pp,    0.,1.)); col = mix(col,c2,clamp(pp-1.,0.,1.));
+    col = mix(col,c3,clamp(pp-2., 0.,1.)); col = mix(col,c4,clamp(pp-3.,0.,1.));
+    col = mix(col,c5,clamp(pp-4., 0.,1.)); col = mix(col,c6,clamp(pp-5.,0.,1.));
+    col = mix(col,c7,clamp(pp-6., 0.,1.));
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -83,15 +91,16 @@ const TrailFrag = `
     float r = length(d);
     if (r > 0.5) discard;
     float alpha = (1.0 - vAge) * smoothstep(0.5, 0.08, r) * 0.55;
-    float pp = clamp(uPalette, 0.0, 3.0);
-    vec3 c0 = vec3(0.18, 0.55, 1.00);
-    vec3 c1 = vec3(0.62, 0.22, 1.00);
-    vec3 c2 = vec3(1.00, 0.32, 0.18);
-    vec3 c3 = vec3(0.72, 0.84, 0.96);
-    vec3 col = mix(
-      mix(mix(c0, c1, clamp(pp, 0., 1.)), c2, clamp(pp - 1., 0., 1.)),
-      c3, clamp(pp - 2., 0., 1.)
-    );
+    float pp = clamp(uPalette, 0.0, 7.0);
+    vec3 c0 = vec3(0.18,0.55,1.00); vec3 c1 = vec3(0.62,0.22,1.00);
+    vec3 c2 = vec3(1.00,0.32,0.18); vec3 c3 = vec3(0.72,0.84,0.96);
+    vec3 c4 = vec3(0.08,0.85,0.95); vec3 c5 = vec3(0.98,0.70,0.12);
+    vec3 c6 = vec3(0.18,0.92,0.28); vec3 c7 = vec3(0.95,0.15,0.65);
+    vec3 col = c0;
+    col = mix(col,c1,clamp(pp,    0.,1.)); col = mix(col,c2,clamp(pp-1.,0.,1.));
+    col = mix(col,c3,clamp(pp-2., 0.,1.)); col = mix(col,c4,clamp(pp-3.,0.,1.));
+    col = mix(col,c5,clamp(pp-4., 0.,1.)); col = mix(col,c6,clamp(pp-5.,0.,1.));
+    col = mix(col,c7,clamp(pp-6., 0.,1.));
     gl_FragColor = vec4(col, alpha);
   }
 `;
