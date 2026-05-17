@@ -17,7 +17,17 @@ const M = 36;
 const CAM_H = 96;
 const CAM_GAP = 12;
 
-const PALETTE_NAMES = ['Cold', 'Violet', 'Ember', 'Void'];
+const PALETTE_NAMES = ['Cold', 'Violet', 'Ember', 'Void', 'Teal', 'Amber', 'Emerald', 'Rose'];
+const PALETTE_COLORS = [
+  'rgba(34,85,200,0.9)',
+  'rgba(100,20,220,0.9)',
+  'rgba(210,24,36,0.9)',
+  'rgba(70,85,95,0.9)',
+  'rgba(8,148,175,0.9)',
+  'rgba(210,140,12,0.9)',
+  'rgba(22,175,36,0.9)',
+  'rgba(210,16,130,0.9)',
+];
 
 const GESTURE_LABELS = {
   OPEN_PALM:   '— Bloom',
@@ -119,16 +129,35 @@ export function TopRight({ onHelp }) {
 
       <Divider w={20} />
 
+      {/* 8 palette dots */}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        {PALETTE_COLORS.map((col, i) => {
+          const active = (paletteIdx % 8) === i;
+          return (
+            <motion.div
+              key={i}
+              animate={{ opacity: active ? 1 : 0.28, scale: active ? 1.35 : 1 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: col,
+                boxShadow: active ? `0 0 8px ${col}` : 'none',
+              }}
+            />
+          );
+        })}
+      </div>
+
       <AnimatePresence mode="wait">
         <motion.div
-          key={paletteIdx}
+          key={paletteIdx % 8}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          style={{ ...T.caption, color: 'rgba(48,148,255,0.90)', textTransform: 'uppercase', fontWeight: 600 }}
+          style={{ ...T.caption, color: PALETTE_COLORS[paletteIdx % 8], textTransform: 'uppercase', fontWeight: 600, textShadow: SHADOW }}
         >
-          {PALETTE_NAMES[paletteIdx]}
+          {PALETTE_NAMES[paletteIdx % 8]}
         </motion.div>
       </AnimatePresence>
 
@@ -360,9 +389,12 @@ export function FeatureGuide({ visible, onClose }) {
             <div style={{ ...T.caption, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
               Palettes
             </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {PALETTE_NAMES.map((name) => (
-                <span key={name} style={{ ...T.micro, fontWeight: 500, color: 'rgba(255,255,255,0.62)' }}>{name}</span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {PALETTE_NAMES.map((name, i) => (
+                <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: PALETTE_COLORS[i], flexShrink: 0 }} />
+                  <span style={{ ...T.micro, fontWeight: 500, color: 'rgba(255,255,255,0.58)' }}>{name}</span>
+                </div>
               ))}
             </div>
           </div>

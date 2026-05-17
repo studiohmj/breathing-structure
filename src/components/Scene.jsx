@@ -384,10 +384,16 @@ export default function Scene() {
     // Keyboard gesture simulation + Space burst
     const handleKeyDown = (e) => {
       if (storeRef.current.phase !== 'active') return;
-      // G: toggle gaze/cursor light (works in both mouse and camera modes)
+      // G: toggle cursor light
       if (e.key === 'g' || e.key === 'G') {
         const st = useStore.getState();
         st.setCursorLight(!st.cursorLight);
+        return;
+      }
+      // V: cycle palette
+      if (e.key === 'v' || e.key === 'V') {
+        const st = useStore.getState();
+        st.setPaletteIdx(st.paletteIdx + 1);
         return;
       }
       if (storeRef.current.cameraAllowed) return;
