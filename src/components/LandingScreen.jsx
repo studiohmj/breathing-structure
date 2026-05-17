@@ -83,7 +83,7 @@ export default function LandingScreen({ onEnter }) {
 
         {/* Tagline */}
         <motion.div variants={itemV} style={{
-          fontSize: 'clamp(14px, 1.5vw, 16px)', fontWeight: 300,
+          fontSize: 'clamp(14px, 1.5vw, 16px)', fontWeight: 500,
           letterSpacing: '0.06em', color: 'rgba(255,255,255,0.55)',
           lineHeight: 1.5, marginBottom: 28,
         }}>
