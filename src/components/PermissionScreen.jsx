@@ -52,7 +52,8 @@ export default function PermissionScreen({ onAllow, onSkip }) {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       useStore.getState().setCameraAllowed(true);
       onAllow(stream);
-    } catch {
+    } catch (err) {
+      console.warn('Camera access denied:', err);
       setError('Camera access denied. Continuing with mouse interaction.');
       setTimeout(onSkip, 2000);
     } finally {

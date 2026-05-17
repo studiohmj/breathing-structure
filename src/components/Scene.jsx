@@ -295,7 +295,7 @@ export default function Scene() {
 
     const bw = Math.round(el.offsetWidth / 2);
     const bh = Math.round(el.offsetHeight / 2);
-    const bloom = new UnrealBloomPass(new THREE.Vector2(bw, bh), 0.44, 0.38, 0.88);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(bw, bh), 0.44, 0.38, 0.95);
     composer.addPass(bloom);
 
     const chromaPass = new ShaderPass(ChromaShader);
@@ -538,7 +538,9 @@ export default function Scene() {
       env.gazeLight.position.x += (glx - env.gazeLight.position.x) * Math.min(dt * 1.8, 1);
       env.gazeLight.position.y += (gly - env.gazeLight.position.y) * Math.min(dt * 1.8, 1);
       if (s.cursorLight) {
-        env.gazeLight.intensity = 0.16 + bwVal * 0.08 + s.energyLevel * 0.12;
+        // Constant intensity — no bwVal oscillation to avoid bloom threshold crossing
+        const targetGaze = 0.20 + s.energyLevel * 0.10;
+        env.gazeLight.intensity += (targetGaze - env.gazeLight.intensity) * Math.min(dt * 6, 1);
       } else {
         env.gazeLight.intensity += (0 - env.gazeLight.intensity) * Math.min(dt * 4, 1);
       }
@@ -580,13 +582,14 @@ export default function Scene() {
         camera.position.z += Math.pow(1 - shockAge / 0.30, 2.0) * 0.42;
       }
 
-      // Post-processing — bloom capped to prevent black-screen overdrive
+      // Post-processing — bloom lerped to prevent threshold-crossing flicker
       const blastBoost = blastAge < 0.6 ? (0.6 - blastAge) * 0.6 : 0;
-      bloom.strength = Math.min(0.68,
-        0.30 + bwVal * 0.10 + s.energyLevel * 0.22 + s.smoothOpenness * 0.06
-        + shakeAmtRef.current * 0.06 + blastBoost * 0.25 + shockBloom
+      const targetBloom = Math.min(0.62,
+        0.28 + bwVal * 0.07 + s.energyLevel * 0.18 + s.smoothOpenness * 0.05
+        + shakeAmtRef.current * 0.05 + blastBoost * 0.22 + shockBloom
       );
-      bloom.radius   = 0.38 + s.smoothOpenness * 0.12;
+      bloom.strength += (targetBloom - bloom.strength) * Math.min(dt * 12, 1);
+      bloom.radius   = 0.38 + s.smoothOpenness * 0.10;
       chromaPass.uniforms.uStrength.value = Math.min(
         s.smoothVelocity * 0.25 + shakeAmtRef.current * 0.25 + blastBoost * 0.2 + shockChroma,
         2.5
@@ -684,6 +687,9 @@ export default function Scene() {
           else obj.material.dispose();
         }
       });
+      bloom.dispose();
+      chromaPass.dispose();
+      grainPass.dispose();
       composer.dispose();
       renderer.dispose();
       try { el.removeChild(renderer.domElement); } catch (_) {}
