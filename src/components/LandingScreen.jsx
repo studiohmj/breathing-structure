@@ -85,14 +85,14 @@ export default function LandingScreen({ onEnter }) {
         <motion.div variants={itemV} style={{
           fontSize: 'clamp(14px, 1.5vw, 16px)', fontWeight: 300,
           letterSpacing: '0.06em', color: 'rgba(255,255,255,0.55)',
-          lineHeight: 1.5, marginBottom: 56,
+          lineHeight: 1.5, marginBottom: 28,
         }}>
           숨이 형태가 된다
         </motion.div>
 
         {/* Divider */}
         <motion.div variants={itemV} style={{ width: '100%' }}>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 20 }} />
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 28 }} />
 
           {/* Meta */}
           <div style={{
