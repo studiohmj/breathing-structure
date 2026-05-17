@@ -23,7 +23,7 @@ export const useStore = create((set) => ({
   cameraAllowed: false,
   cameraError: null,
 
-  // Visual palette: 0=Cold Blue, 1=Violet, 2=Ember, 3=Void
+  // Visual palette: 0=Cold 1=Violet 2=Ember 3=Void 4=Teal 5=Amber 6=Emerald 7=Rose
   paletteIdx: 0,
 
   // Cursor light interaction toggle
@@ -32,7 +32,7 @@ export const useStore = create((set) => ({
   setPhase: (phase) => set({ phase }),
   setCameraAllowed: (v) => set({ cameraAllowed: v }),
   setCameraError: (e) => set({ cameraError: e }),
-  setPaletteIdx: (v) => set({ paletteIdx: ((v % 4) + 4) % 4 }),
+  setPaletteIdx: (v) => set({ paletteIdx: ((v % 8) + 8) % 8 }),
   setCursorLight: (v) => set({ cursorLight: v }),
 
   updateHand: (data) => set((s) => {
